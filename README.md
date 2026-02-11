@@ -17,7 +17,7 @@ The system is designed to reflect **real-world pharmacy workflows**, ensuring me
 - Cloudinary Account (Image storage)
 - Google Gemini API key
 
-### Installation
+## Installation
 
 **Backend Setup:**
 ```bash
