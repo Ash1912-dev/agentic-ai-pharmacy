@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Pill, ArrowRight, AlertCircle, Loader, CheckCircle } from "lucide-react";
 
 const Signup = ({ onNavigate = () => { }, onSignup = () => { } }) => {
+  const errorRef = useRef(null);
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -21,6 +22,13 @@ const Signup = ({ onNavigate = () => { }, onSignup = () => { } }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  // Scroll to error notification when error is set
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [error]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -113,7 +121,7 @@ const Signup = ({ onNavigate = () => { }, onSignup = () => { } }) => {
 
               {/* Error Message */}
               {error && (
-                <div className="mb-4 p-4 bg-red-500/20 border border-red-400/50 rounded-lg flex items-start gap-3">
+                <div ref={errorRef} className="mb-4 p-4 bg-red-500/20 border border-red-400/50 rounded-lg flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                   <p className="text-red-300 text-sm">{error}</p>
                 </div>
