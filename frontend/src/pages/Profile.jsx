@@ -4,7 +4,7 @@
 
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { User, Phone, Mail, Calendar, LogOut, Shield, Edit3 } from "lucide-react";
+import { User, Phone, Mail, Calendar, LogOut, Shield, Edit3, MapPin } from "lucide-react";
 import { useState } from "react";
 
 const Profile = () => {
@@ -20,12 +20,12 @@ const Profile = () => {
     navigate("/");
   };
 
-  const joinDate = user.createdAt 
+  const joinDate = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
     : "N/A";
 
   return (
@@ -80,6 +80,19 @@ const Profile = () => {
             </div>
           </div>
 
+          {/* Email */}
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-teal-600/20 backdrop-blur-xl border border-emerald-400/40">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-emerald-500/30 rounded-lg">
+                <Mail className="w-6 h-6 text-emerald-300" />
+              </div>
+              <div>
+                <p className="text-emerald-200/60 text-sm">Email Address</p>
+                <p className="text-lg font-bold text-white">{user?.email || "N/A"}</p>
+              </div>
+            </div>
+          </div>
+
           {/* Phone */}
           <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-teal-600/20 backdrop-blur-xl border border-emerald-400/40">
             <div className="flex items-center justify-between">
@@ -91,6 +104,61 @@ const Profile = () => {
                   <p className="text-emerald-200/60 text-sm">Phone Number</p>
                   <p className="text-lg font-bold text-white">{user?.phone}</p>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Gender & DOB */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-teal-600/20 backdrop-blur-xl border border-emerald-400/40">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-emerald-500/30 rounded-lg">
+                  <User className="w-6 h-6 text-emerald-300" />
+                </div>
+                <div>
+                  <p className="text-emerald-200/60 text-sm">Gender</p>
+                  <p className="text-lg font-bold text-white capitalize">{user?.gender?.toLowerCase() || "N/A"}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-teal-600/20 backdrop-blur-xl border border-emerald-400/40">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-emerald-500/30 rounded-lg">
+                  <Calendar className="w-6 h-6 text-emerald-300" />
+                </div>
+                <div>
+                  <p className="text-emerald-200/60 text-sm">Date of Birth</p>
+                  <p className="text-lg font-bold text-white">
+                    {user?.dob
+                      ? new Date(user.dob).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+                      : "N/A"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Address */}
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-teal-600/20 backdrop-blur-xl border border-emerald-400/40">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-emerald-500/30 rounded-lg">
+                <MapPin className="w-6 h-6 text-emerald-300" />
+              </div>
+              <div className="flex-1">
+                <p className="text-emerald-200/60 text-sm">Address</p>
+                {user?.address ? (
+                  <p className="text-lg font-bold text-white leading-relaxed">
+                    {user.address.street && <span className="block">{user.address.street}</span>}
+                    <span>
+                      {[user.address.city, user.address.state, user.address.zip].filter(Boolean).join(", ")}
+                    </span>
+                    {user.address.country && <span className="block">{user.address.country}</span>}
+                    {!user.address.street && !user.address.city && "No address details available"}
+                  </p>
+                ) : (
+                  <p className="text-lg font-bold text-white">N/A</p>
+                )}
               </div>
             </div>
           </div>
