@@ -3,7 +3,7 @@
 // frontend/src/pages/Medicines.jsx
 // ========================================
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { Search, Pill, ShoppingCart, MessageCircle, Loader } from "lucide-react";
@@ -14,15 +14,12 @@ const Medicines = () => {
   const [medicines, setMedicines] = useState([]);
   const navigate = useNavigate();
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-
+  const fetchMedicines = async (searchQuery = "") => {
     setLoading(true);
     try {
       const res = await axiosInstance.get("/api/medicines/search", {
         params: {
-          q: query,
+          q: searchQuery,
           _ts: Date.now(),
         },
       });
@@ -34,6 +31,15 @@ const Medicines = () => {
       setLoading(false);
     }
   };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    await fetchMedicines(query.trim());
+  };
+
+  useEffect(() => {
+    fetchMedicines();
+  }, []);
 
   const askAI = (medicine) => {
     navigate("/chat", {
@@ -103,11 +109,13 @@ const Medicines = () => {
           </div>
         )}
 
-        {!loading && query && medicines.length === 0 && (
+        {!loading && medicines.length === 0 && (
           <div className="text-center py-12 px-4 bg-emerald-500/10 border border-emerald-400/30 rounded-2xl">
             <Pill className="w-12 h-12 text-emerald-400/50 mx-auto mb-3" />
             <p className="text-emerald-300 font-medium">No medicines found</p>
-            <p className="text-emerald-200/60 text-sm mt-1">Try searching with different keywords</p>
+            <p className="text-emerald-200/60 text-sm mt-1">
+              {query ? "Try searching with different keywords" : "No medicines are available yet"}
+            </p>
           </div>
         )}
 
@@ -150,7 +158,14 @@ const Medicines = () => {
                     </div>
 
                     <div className="flex justify-between text-sm">
-                      <span className="text-emerald-200/60">Stock</span>
+                      <span className="text-emerald-200/60">Available Qty</span>
+                      <span className="text-emerald-300 font-semibold">
+                        {Number.isFinite(med.availableQuantity) ? med.availableQuantity : 0}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span className="text-emerald-200/60">Status</span>
                       <span
                         className={`font-semibold ${
                           med.inStock

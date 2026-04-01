@@ -3,14 +3,21 @@ const Inventory = require("../models/Inventory.model");
 
 const searchMedicines = async (req, res) => {
   try {
-    const query = req.query.q || "";
+    const query = (req.query.q || "").trim();
 
-    const medicines = await Medicine.find({
-      $or: [
-        { name: { $regex: query, $options: "i" } },
-        { brand: { $regex: query, $options: "i" } },
-      ],
-    });
+    const medicineFilter = {
+      isActive: true,
+      ...(query
+        ? {
+            $or: [
+              { name: { $regex: query, $options: "i" } },
+              { brand: { $regex: query, $options: "i" } },
+            ],
+          }
+        : {}),
+    };
+
+    const medicines = await Medicine.find(medicineFilter).sort({ name: 1 });
 
     const medicinesWithStock = await Promise.all(
       medicines.map(async (med) => {
@@ -18,9 +25,12 @@ const searchMedicines = async (req, res) => {
           medicine: med._id, // ✅ correct field
         });
 
+        const availableQuantity = inventory ? Number(inventory.stock || 0) : 0;
+
         return {
           ...med.toObject(),
-          inStock: inventory ? inventory.stock > 0 : false, // ✅ correct field
+          availableQuantity,
+          inStock: availableQuantity > 0,
         };
       })
     );
