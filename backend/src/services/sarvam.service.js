@@ -92,6 +92,11 @@ const extractMedicinesFromPrescriptionImage = async ({ filePath, mimeType }) => 
   const userPrompt =
     "Return only valid JSON in this exact schema: {\"medicines\":[{\"name\":\"\",\"dosage\":\"\",\"frequency\":\"\",\"duration\":\"\"}]}. If nothing is readable return {\"medicines\":[]}.";
 
+  // Sarvam's text chat API expects message content to be a string.
+  // We embed a short description plus a data URL representation of the image
+  // so the payload matches the expected schema.
+  const userContent = `${userPrompt}\n\nPrescription image data URL: data:${mimeType};base64,${base64}`;
+
   const text = await sarvamChat({
     model: SARVAM_CHAT_MODEL,
     maxTokens: 500,
@@ -100,15 +105,7 @@ const extractMedicinesFromPrescriptionImage = async ({ filePath, mimeType }) => 
       { role: "system", content: systemPrompt },
       {
         role: "user",
-        content: [
-          { type: "text", text: userPrompt },
-          {
-            type: "image_url",
-            image_url: {
-              url: `data:${mimeType};base64,${base64}`,
-            },
-          },
-        ],
+        content: userContent,
       },
     ],
   });
