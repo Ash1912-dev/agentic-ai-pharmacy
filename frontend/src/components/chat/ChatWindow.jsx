@@ -13,29 +13,65 @@ const ChatWindow = () => {
   const navigate = useNavigate();
   const bottomRef = useRef(null);
 
-  const isAiChatEnabled =
+  const isGlobalAiEnabled =
     String(import.meta.env.VITE_AI_CHAT_ENABLED ?? "true").toLowerCase() === "true";
+
+  const frontendAllowedUsers = new Set(
+    String(import.meta.env.VITE_AI_ALLOWED_USERS || "")
+      .split(",")
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean)
+  );
+
+  const userIdentifiers = [user?._id, user?.email, user?.phone]
+    .map((value) => String(value || "").trim().toLowerCase())
+    .filter(Boolean);
+
+  const isAllowlistedUser = userIdentifiers.some((id) => frontendAllowedUsers.has(id));
+  const isAiChatEnabled = isGlobalAiEnabled || isAllowlistedUser;
+
+  const buildIntroText = (aiEnabled) =>
+    aiEnabled
+      ? "👋 Hey! I'm your AI Pharmacy Assistant.\n\n" +
+        "Here's what I can do:\n" +
+        "🔍 Search & order medicines instantly\n" +
+        "📋 Extract medicines from prescriptions\n" +
+        "💊 Suggest refills & manage inventory\n" +
+        "💬 Answer any pharmacy questions\n\n" +
+        "What can I help you with today?"
+      : "🛑 AI chat is paused for this deployment to control usage.\n\n" +
+        "✅ You can still place a quick Paracetamol order below.\n" +
+        "✅ Your order will appear in Orders tab.\n" +
+        "✅ You can still set intake reminders as usual.";
 
   const [isTyping, setIsTyping] = useState(false);
   const [isOrderingFallback, setIsOrderingFallback] = useState(false);
   const [messages, setMessages] = useState([
     {
       sender: "agent",
-      text: isAiChatEnabled
-        ? "👋 Hey! I'm your AI Pharmacy Assistant.\n\n" +
-          "Here's what I can do:\n" +
-          "🔍 Search & order medicines instantly\n" +
-          "📋 Extract medicines from prescriptions\n" +
-          "💊 Suggest refills & manage inventory\n" +
-          "💬 Answer any pharmacy questions\n\n" +
-          "What can I help you with today?"
-        : "🛑 AI chat is paused for this deployment to control usage.\n\n" +
-          "✅ You can still place a quick Paracetamol order below.\n" +
-          "✅ Your order will appear in Orders tab.\n" +
-          "✅ You can still set intake reminders as usual.",
+      text: buildIntroText(isAiChatEnabled),
       timestamp: new Date(),
     },
   ]);
+
+  useEffect(() => {
+    if (isAiChatEnabled) {
+      localStorage.removeItem("aiPausedMode");
+    }
+  }, [isAiChatEnabled]);
+
+  useEffect(() => {
+    if (messages.length === 1 && messages[0].sender === "agent") {
+      setMessages([
+        {
+          sender: "agent",
+          text: buildIntroText(isAiChatEnabled),
+          timestamp: new Date(),
+        },
+      ]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAiChatEnabled]);
 
   const placeParacetamolOrder = async (quantity = 10) => {
     setIsOrderingFallback(true);

@@ -13,10 +13,12 @@
 
 - VITE_API_BASE_URL = https://YOUR_RENDER_BACKEND_URL
 - VITE_AI_CHAT_ENABLED = true
+- VITE_AI_ALLOWED_USERS = aasahyv0@gmail.com
 
 Example:
 - VITE_API_BASE_URL = https://agentic-ai-pharmacy-api.onrender.com
 - VITE_AI_CHAT_ENABLED = false (for demo mode with AI paused UI)
+- VITE_AI_ALLOWED_USERS = aasahyv0@gmail.com (enable AI for selected user even in demo mode)
 
 ## 2) Backend on Render
 

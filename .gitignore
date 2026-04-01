@@ -28,3 +28,7 @@ logs/
 # Uploads / temp
 uploads/
 temp/
+
+# Docs: keep only showcase README tracked
+*.md
+!README.md

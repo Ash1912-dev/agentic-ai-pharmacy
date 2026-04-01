@@ -5,14 +5,27 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
+import { useAuth } from "../context/AuthContext";
 import { ShoppingCart, Clock, Package, AlertCircle, Loader, Bell } from "lucide-react";
 
 const Orders = () => {
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const isAiChatEnabled =
+  const isGlobalAiEnabled =
     String(import.meta.env.VITE_AI_CHAT_ENABLED ?? "true").toLowerCase() === "true";
+  const frontendAllowedUsers = new Set(
+    String(import.meta.env.VITE_AI_ALLOWED_USERS || "")
+      .split(",")
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean)
+  );
+  const userIdentifiers = [user?._id, user?.email, user?.phone]
+    .map((value) => String(value || "").trim().toLowerCase())
+    .filter(Boolean);
+  const isAllowlistedUser = userIdentifiers.some((id) => frontendAllowedUsers.has(id));
+  const isAiChatEnabled = isGlobalAiEnabled || isAllowlistedUser;
   const aiPausedMode = localStorage.getItem("aiPausedMode") === "true";
 
   useEffect(() => {
@@ -78,7 +91,7 @@ const Orders = () => {
             Track your medicine orders and set intake reminders
           </p>
 
-          {(!isAiChatEnabled || aiPausedMode) && (
+          {(!isAiChatEnabled || (aiPausedMode && !isAllowlistedUser)) && (
             <div className="mt-4 p-4 rounded-xl bg-yellow-500/10 border border-yellow-400/40">
               <p className="text-sm text-yellow-100">
                 AI chat is paused in this hosted mode. You can still place quick manual orders and continue setting reminders normally.
