@@ -13,6 +13,7 @@ const UploadPrescription = () => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [medicines, setMedicines] = useState([]);
+  const [detectedMedicines, setDetectedMedicines] = useState([]);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const navigate = useNavigate();
 
@@ -25,7 +26,6 @@ const UploadPrescription = () => {
     setLoading(true);
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("userId", user._id);
 
     try {
       const res = await axiosInstance.post(
@@ -35,11 +35,13 @@ const UploadPrescription = () => {
       );
 
       setMedicines(res.data.medicines || []);
+      setDetectedMedicines(res.data.detectedMedicines || []);
       setUploadSuccess(true);
     } catch (err) {
       console.error("Prescription upload failed", err);
-      alert("Failed to scan prescription. Please try again.");
+      alert(err?.response?.data?.message || "Failed to scan prescription. Please try again.");
       setMedicines([]);
+      setDetectedMedicines([]);
     } finally {
       setLoading(false);
     }
@@ -54,6 +56,8 @@ const UploadPrescription = () => {
       state: { context },
     });
   };
+
+  const matchedCount = detectedMedicines.filter((m) => m.inInventory).length;
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-slate-950 via-emerald-950/50 to-slate-950 px-4 py-12">
@@ -104,6 +108,7 @@ const UploadPrescription = () => {
                   onChange={(e) => {
                     setFile(e.target.files[0]);
                     setMedicines([]);
+                    setDetectedMedicines([]);
                     setUploadSuccess(false);
                   }}
                   className="hidden"
@@ -139,7 +144,9 @@ const UploadPrescription = () => {
                 <CheckCircle className="w-6 h-6 text-emerald-400 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-emerald-300 font-semibold">Prescription scanned successfully!</p>
-                  <p className="text-emerald-200/60 text-sm mt-1">Found {medicines.length} medicine(s)</p>
+                  <p className="text-emerald-200/60 text-sm mt-1">
+                    Found {medicines.length} medicine(s), {matchedCount} matched in your inventory.
+                  </p>
                 </div>
               </div>
             )}
@@ -151,13 +158,42 @@ const UploadPrescription = () => {
               </h3>
 
               <div className="space-y-2 mb-6">
-                {medicines.map((medicine, idx) => (
+                {(detectedMedicines.length ? detectedMedicines : medicines.map((name) => ({ name }))).map((medicine, idx) => (
                   <div
                     key={idx}
-                    className="p-3 bg-emerald-500/10 border border-emerald-400/30 rounded-lg flex items-center gap-3"
+                    className={`p-3 border rounded-lg flex items-start gap-3 ${
+                      medicine.inInventory
+                        ? "bg-emerald-500/10 border-emerald-400/30"
+                        : "bg-red-500/10 border-red-400/30"
+                    }`}
                   >
-                    <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                    <span className="text-emerald-200">{medicine}</span>
+                    <CheckCircle
+                      className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+                        medicine.inInventory ? "text-emerald-400" : "text-red-400"
+                      }`}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-emerald-100 font-medium">{medicine.name}</span>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-md border ${
+                            medicine.inInventory
+                              ? "text-emerald-300 border-emerald-400/40"
+                              : "text-red-300 border-red-400/40"
+                          }`}
+                        >
+                          {medicine.inInventory ? "In Inventory" : "Not in Inventory"}
+                        </span>
+                      </div>
+
+                      <div className="mt-2 text-xs text-emerald-200/80 grid sm:grid-cols-3 gap-2">
+                        <span>Qty: {medicine.availableQuantity ?? 0}</span>
+                        <span>Price: {medicine.price != null ? `₹${medicine.price}` : "N/A"}</span>
+                        <span>
+                          {medicine.requiresPrescription ? "Rx Required" : "No Rx"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
