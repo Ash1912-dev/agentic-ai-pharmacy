@@ -16,9 +16,14 @@ const generateAIResponse = async (prompt) => {
           parts: [{ text: prompt }],
         },
       ],
+      generationConfig: {
+        maxOutputTokens: 180,
+        temperature: 0.2,
+      },
     },
     {
       headers: { "Content-Type": "application/json" },
+      timeout: 10000,
     }
   );
 

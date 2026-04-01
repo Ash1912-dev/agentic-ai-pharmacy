@@ -1,8 +1,7 @@
 import axiosInstance from "./axiosInstance";
 
-export const sendMessageToAgent = (userId, message) => {
+export const sendMessageToAgent = (message) => {
   return axiosInstance.post("/api/agent/message", {
-    userId,
     message,
   });
 };

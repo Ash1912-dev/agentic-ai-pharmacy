@@ -11,6 +11,9 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const isAiChatEnabled =
+    String(import.meta.env.VITE_AI_CHAT_ENABLED ?? "true").toLowerCase() === "true";
+  const aiPausedMode = localStorage.getItem("aiPausedMode") === "true";
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -74,6 +77,14 @@ const Orders = () => {
           <p className="text-emerald-200/80">
             Track your medicine orders and set intake reminders
           </p>
+
+          {(!isAiChatEnabled || aiPausedMode) && (
+            <div className="mt-4 p-4 rounded-xl bg-yellow-500/10 border border-yellow-400/40">
+              <p className="text-sm text-yellow-100">
+                AI chat is paused in this hosted mode. You can still place quick manual orders and continue setting reminders normally.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Loading State */}

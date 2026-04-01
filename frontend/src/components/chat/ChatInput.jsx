@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Send, Loader } from "lucide-react";
 
-const ChatInput = ({ onSend, disabled }) => {
+const ChatInput = ({ onSend, disabled, placeholder }) => {
   const [input, setInput] = useState("");
 
   const handleSend = () => {
@@ -14,7 +14,7 @@ const ChatInput = ({ onSend, disabled }) => {
     <div className="flex gap-3 items-end">
       <input
         className="flex-1 bg-emerald-500/10 border border-emerald-400/40 rounded-2xl px-5 py-3 text-sm text-white placeholder-emerald-300/50 focus:outline-none focus:border-emerald-300/80 focus:ring-2 focus:ring-emerald-400/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-        placeholder={disabled ? "AI is processing..." : "Type your message... (or press Enter)"}
+        placeholder={placeholder || (disabled ? "AI is processing..." : "Type your message... (or press Enter)")}
         value={input}
         disabled={disabled}
         onChange={(e) => setInput(e.target.value)}

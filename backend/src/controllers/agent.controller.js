@@ -4,11 +4,24 @@ const { pharmacistSystemPrompt } = require("../agents/pharmacist.agent");
 const langfuse = require("../config/langfuse");
 
 const agentMessage = async (req, res) => {
-  const { userId, message } = req.body;
+  const userId = req.user?._id?.toString();
+  const message = typeof req.body?.message === "string" ? req.body.message.trim() : "";
 
-  if (!userId || !message) {
+  if (!userId) {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  }
+
+  if (!message) {
     return res.status(400).json({
-      message: "userId and message are required",
+      message: "message is required",
+    });
+  }
+
+  if (message.length > 500) {
+    return res.status(400).json({
+      message: "Message too long. Maximum 500 characters.",
     });
   }
 

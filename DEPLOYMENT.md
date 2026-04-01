@@ -12,9 +12,11 @@
 ### Frontend Environment Variables (Vercel)
 
 - VITE_API_BASE_URL = https://YOUR_RENDER_BACKEND_URL
+- VITE_AI_CHAT_ENABLED = true
 
 Example:
 - VITE_API_BASE_URL = https://agentic-ai-pharmacy-api.onrender.com
+- VITE_AI_CHAT_ENABLED = false (for demo mode with AI paused UI)
 
 ## 2) Backend on Render
 
@@ -43,6 +45,17 @@ Example:
 - CLOUDINARY_API_KEY
 - CLOUDINARY_API_SECRET
 - Any Google OAuth keys used by your auth flow
+
+### AI Cost-Control Guards (recommended for academic hosting)
+
+- AI_ENABLED = true
+- AI_DAILY_LIMIT = 40
+- AI_ALLOWED_USERS = your-email@example.com,another-email@example.com
+
+Notes:
+- `AI_ALLOWED_USERS` supports user email, phone, or userId (comma-separated).
+- If `AI_ALLOWED_USERS` is empty, all authenticated users can access AI.
+- Keep this restricted in public demos to avoid abuse.
 
 ## 3) Twilio WhatsApp Webhook (Production)
 
