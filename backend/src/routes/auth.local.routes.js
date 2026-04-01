@@ -1,6 +1,7 @@
 const express = require("express");
 const User = require("../models/User.model");
 const bcrypt = require("bcryptjs");
+const { signToken } = require("../utils/token");
 
 const router = express.Router();
 
@@ -110,7 +111,9 @@ router.post("/login", async (req, res) => {
       const userObj = user.toObject();
       delete userObj.password;
 
-      res.json({ message: "Login successful", user: userObj });
+      const token = signToken(userObj);
+
+      res.json({ message: "Login successful", user: userObj, token });
     });
   } catch (err) {
     console.error("Login Error:", err);

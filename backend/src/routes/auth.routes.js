@@ -1,5 +1,7 @@
 const express = require("express");
 const passport = require("passport");
+const User = require("../models/User.model");
+const { verifyToken, getBearerToken } = require("../utils/token");
 
 const router = express.Router();
 
@@ -33,10 +35,28 @@ router.get(
  * GET CURRENT LOGGED-IN USER
  */
 router.get("/me", (req, res) => {
-  if (!req.user) {
+  if (req.user) {
+    return res.json({ user: req.user });
+  }
+
+  const token = getBearerToken(req);
+  if (!token) {
     return res.status(401).json({ message: "Not authenticated" });
   }
-  res.json({ user: req.user });
+
+  try {
+    const payload = verifyToken(token);
+    User.findById(payload.sub)
+      .then((user) => {
+        if (!user) {
+          return res.status(401).json({ message: "Not authenticated" });
+        }
+        return res.json({ user });
+      })
+      .catch(() => res.status(401).json({ message: "Not authenticated" }));
+  } catch {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
 });
 
 /**
