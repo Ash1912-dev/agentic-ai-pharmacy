@@ -1,12 +1,24 @@
-const Tesseract = require("tesseract.js");
 
-const extractTextFromFile = async (filePath, mimeType) => {
-  if (mimeType === "application/pdf") {
-    throw new Error("PDF OCR not supported yet");
+
+const fs = require("fs");
+const path = require("path");
+const { generateAIResponse } = require("../services/ai.service");
+
+
+// Reads image as base64 and sends to Gemini for medicine extraction
+const extractMedicinesFromFile = async (filePath, mimeType) => {
+  const fileData = fs.readFileSync(filePath);
+  const base64Image = fileData.toString("base64");
+  const prompt = `Extract the list of medicine names from this prescription image. Return only a JSON array of medicine names. Image (base64): ${base64Image}`;
+  const response = await generateAIResponse(prompt);
+  // Remove code block markers and whitespace if present
+  let cleaned = response.replace(/```json|```/g, "").trim();
+  try {
+    const medicines = JSON.parse(cleaned);
+    return medicines;
+  } catch (e) {
+    return cleaned;
   }
-
-  const result = await Tesseract.recognize(filePath, "eng");
-  return result.data.text;
 };
 
-module.exports = { extractTextFromFile };
+module.exports = { extractMedicinesFromFile };

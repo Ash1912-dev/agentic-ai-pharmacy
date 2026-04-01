@@ -11,6 +11,7 @@ const twilioClient = require("../config/twilio");
  * Used by BOTH chat flow & admin verification
  */
 const fulfillOrder = async (order) => {
+    console.log(`[fulfillOrder] Called for orderId=${order._id}, isFulfilled=${order.isFulfilled}`);
   // 🔒 Idempotency guard
   if (order.isFulfilled) return;
 
@@ -37,18 +38,16 @@ const fulfillOrder = async (order) => {
 
   if (user?.phone) {
     const to = `whatsapp:+91${user.phone.replace(/\D/g, "")}`;
-
-    await twilioClient.messages.create({
-      from: process.env.TWILIO_WHATSAPP_FROM,
-      to,
-      body: `✅ Order Confirmed
-
-💊 Medicine: ${medicine.name}
-📦 Quantity: ${order.quantity}
-🆔 Order ID: ${order._id}
-
-Thank you for using Agentic AI Pharmacy 💙`,
-    });
+    try {
+      await twilioClient.messages.create({
+        from: process.env.TWILIO_WHATSAPP_FROM,
+        to,
+        body: `✅ Order Confirmed\n\n💊 Medicine: ${medicine.name}\n📦 Quantity: ${order.quantity}\n🆔 Order ID: ${order._id}\n\nThank you for using Agentic AI Pharmacy 💙`,
+      });
+      console.log(`WhatsApp message sent to ${to} for order ${order._id}`);
+    } catch (err) {
+      console.error(`Failed to send WhatsApp message to ${to} for order ${order._id}:`, err.message);
+    }
   }
 
   // 4️⃣ Mark fulfilled (NEW but non-breaking)
@@ -60,6 +59,7 @@ Thank you for using Agentic AI Pharmacy 💙`,
  * CREATE ORDER (CHAT FLOW)
  */
 const createOrder = async ({ userId, medicineId, quantity }) => {
+    console.log(`[createOrder] Called for userId=${userId}, medicineId=${medicineId}, quantity=${quantity}`);
   const medicine = await Medicine.findById(medicineId);
   if (!medicine) throw new Error("Medicine not found");
 

@@ -1,4 +1,18 @@
-import { MessageCircle, Upload, Search, Zap, Shield, Clock, CheckCircle, Pill, ArrowRight, Sparkles } from "lucide-react";
+import {
+  MessageCircle,
+  Upload,
+  Search,
+  Zap,
+  Shield,
+  Clock,
+  CheckCircle,
+  Pill,
+  ArrowRight,
+  Sparkles,
+  Bell,
+  Package,
+  MessageSquare,
+} from "lucide-react";
 
 const Home = ({ onNavigate = () => {} }) => {
   return (
@@ -22,18 +36,19 @@ const Home = ({ onNavigate = () => {} }) => {
               Your AI Pharmacy<br />Assistant
             </h1>
             <p className="text-lg text-emerald-200/80 max-w-2xl mx-auto">
-              Order medicines effortlessly. Search, upload prescriptions, or chat naturally—our AI handles everything.
+              Order medicines effortlessly with AI chat, WhatsApp support, prescription OCR, reminders, and refill alerts.
             </p>
           </div>
         </div>
 
-        {/* Primary Actions - Featured Card */}
+        {/* Primary Actions */}
         <section className="mb-16">
-          <div className="grid lg:grid-cols-3 gap-6">
+          <h2 className="text-2xl font-bold text-white mb-6">Quick Actions</h2>
+          <div className="grid lg:grid-cols-3 gap-6 auto-rows-fr">
             {/* Chat - Featured/Hero */}
             <div 
               onClick={() => onNavigate("/chat")}
-              className="lg:row-span-2 group relative p-8 rounded-2xl bg-gradient-to-br from-teal-600/30 to-cyan-600/30 backdrop-blur-xl border border-teal-400/50 hover:border-teal-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-500/20 cursor-pointer overflow-hidden"
+              className="lg:row-span-2 h-full group relative p-8 rounded-2xl bg-gradient-to-br from-teal-600/30 to-cyan-600/30 backdrop-blur-xl border border-teal-400/50 hover:border-teal-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-500/20 cursor-pointer overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-teal-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               
@@ -44,7 +59,7 @@ const Home = ({ onNavigate = () => {} }) => {
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-2">Chat with AI</h3>
                   <p className="text-teal-200/80 text-sm leading-relaxed">
-                    Just type what you need. Our AI assistant understands natural language, suggests medicines, and handles your orders automatically.
+                    Just type what you need. Our AI assistant understands natural language, suggests medicines, and handles orders instantly.
                   </p>
                 </div>
                 
@@ -58,16 +73,16 @@ const Home = ({ onNavigate = () => {} }) => {
             {/* Search Medicines */}
             <div 
               onClick={() => onNavigate("/medicines")}
-              className="group relative p-6 rounded-2xl bg-gradient-to-br from-emerald-600/30 to-emerald-600/20 backdrop-blur-xl border border-emerald-400/50 hover:border-emerald-300/80 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/20 cursor-pointer overflow-hidden"
+              className="h-full group relative p-6 rounded-2xl bg-gradient-to-br from-emerald-600/30 to-emerald-600/20 backdrop-blur-xl border border-emerald-400/50 hover:border-emerald-300/80 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/20 cursor-pointer overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               
-              <div className="relative z-10">
+              <div className="relative z-10 h-full flex flex-col">
                 <div className="inline-block p-3 bg-emerald-500/30 rounded-lg mb-3 group-hover:bg-emerald-500/50 transition-all">
                   <Search className="w-6 h-6 text-emerald-300" />
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">Search Medicines</h3>
-                <p className="text-emerald-200/70 text-sm mb-4">
+                <p className="text-emerald-200/70 text-sm mb-4 flex-1">
                   Browse our catalog, check prices and availability instantly.
                 </p>
                 <div className="flex items-center gap-2 text-emerald-300 font-medium group-hover:gap-3 transition-all text-sm">
@@ -80,16 +95,16 @@ const Home = ({ onNavigate = () => {} }) => {
             {/* Upload Prescription */}
             <div 
               onClick={() => onNavigate("/upload-prescription")}
-              className="group relative p-6 rounded-2xl bg-gradient-to-br from-cyan-600/30 to-cyan-600/20 backdrop-blur-xl border border-cyan-400/50 hover:border-cyan-300/80 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/20 cursor-pointer overflow-hidden"
+              className="h-full group relative p-6 rounded-2xl bg-gradient-to-br from-cyan-600/30 to-cyan-600/20 backdrop-blur-xl border border-cyan-400/50 hover:border-cyan-300/80 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/20 cursor-pointer overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               
-              <div className="relative z-10">
+              <div className="relative z-10 h-full flex flex-col">
                 <div className="inline-block p-3 bg-cyan-500/30 rounded-lg mb-3 group-hover:bg-cyan-500/50 transition-all">
                   <Upload className="w-6 h-6 text-cyan-300" />
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">Upload Rx</h3>
-                <p className="text-cyan-200/70 text-sm mb-4">
+                <p className="text-cyan-200/70 text-sm mb-4 flex-1">
                   Scan your prescription & AI extracts medicines instantly.
                 </p>
                 <div className="flex items-center gap-2 text-cyan-300 font-medium group-hover:gap-3 transition-all text-sm">
@@ -101,12 +116,12 @@ const Home = ({ onNavigate = () => {} }) => {
           </div>
         </section>
 
-        {/* Features Section */}
+        {/* Platform Features */}
         <section className="mb-16">
-          <h2 className="text-2xl font-bold text-white mb-8 text-center">Why choose us?</h2>
+          <h2 className="text-2xl font-bold text-white mb-8 text-center">Platform Features</h2>
           
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-xl bg-emerald-500/10 border border-emerald-400/30 hover:border-emerald-300/60 transition-all">
+          <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5 auto-rows-fr">
+            <div className="h-full p-6 rounded-xl bg-emerald-500/10 border border-emerald-400/30 hover:border-emerald-300/60 transition-all">
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-emerald-500/30 rounded-lg flex-shrink-0">
                   <Shield className="w-6 h-6 text-emerald-300" />
@@ -118,7 +133,7 @@ const Home = ({ onNavigate = () => {} }) => {
               </div>
             </div>
 
-            <div className="p-6 rounded-xl bg-teal-500/10 border border-teal-400/30 hover:border-teal-300/60 transition-all">
+            <div className="h-full p-6 rounded-xl bg-teal-500/10 border border-teal-400/30 hover:border-teal-300/60 transition-all">
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-teal-500/30 rounded-lg flex-shrink-0">
                   <Zap className="w-6 h-6 text-teal-300" />
@@ -130,7 +145,7 @@ const Home = ({ onNavigate = () => {} }) => {
               </div>
             </div>
 
-            <div className="p-6 rounded-xl bg-cyan-500/10 border border-cyan-400/30 hover:border-cyan-300/60 transition-all">
+            <div className="h-full p-6 rounded-xl bg-cyan-500/10 border border-cyan-400/30 hover:border-cyan-300/60 transition-all">
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-cyan-500/30 rounded-lg flex-shrink-0">
                   <Clock className="w-6 h-6 text-cyan-300" />
@@ -138,6 +153,54 @@ const Home = ({ onNavigate = () => {} }) => {
                 <div>
                   <h3 className="font-semibold text-white mb-2">Fast Delivery</h3>
                   <p className="text-cyan-200/70 text-sm">Orders confirmed instantly with quick delivery to your doorstep.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="h-full p-6 rounded-xl bg-emerald-500/10 border border-emerald-400/30 hover:border-emerald-300/60 transition-all">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-emerald-500/30 rounded-lg flex-shrink-0">
+                  <MessageSquare className="w-6 h-6 text-emerald-300" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white mb-2">WhatsApp Service</h3>
+                  <p className="text-emerald-200/70 text-sm">Continue support and medicine assistance through WhatsApp conversations.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="h-full p-6 rounded-xl bg-teal-500/10 border border-teal-400/30 hover:border-teal-300/60 transition-all">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-teal-500/30 rounded-lg flex-shrink-0">
+                  <Bell className="w-6 h-6 text-teal-300" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white mb-2">Daily Intake Reminders</h3>
+                  <p className="text-teal-200/70 text-sm">Set, edit, pause, and resume medicine reminders from your dashboard.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="h-full p-6 rounded-xl bg-cyan-500/10 border border-cyan-400/30 hover:border-cyan-300/60 transition-all">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-cyan-500/30 rounded-lg flex-shrink-0">
+                  <Package className="w-6 h-6 text-cyan-300" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white mb-2">Order Tracking</h3>
+                  <p className="text-cyan-200/70 text-sm">Monitor current and past orders with clear delivery status updates.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="h-full p-6 rounded-xl bg-emerald-500/10 border border-emerald-400/30 hover:border-emerald-300/60 transition-all">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-emerald-500/30 rounded-lg flex-shrink-0">
+                  <Upload className="w-6 h-6 text-emerald-300" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white mb-2">Rx Upload + AI Extraction</h3>
+                  <p className="text-emerald-200/70 text-sm">Convert prescription images into medicine lists and continue directly to chat.</p>
                 </div>
               </div>
             </div>
@@ -181,9 +244,9 @@ const Home = ({ onNavigate = () => {} }) => {
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 to-transparent"></div>
           
           <div className="relative z-10 text-center max-w-2xl mx-auto">
-            <h2 className="text-3xl font-bold text-white mb-4">Ready to get started?</h2>
+            <h2 className="text-3xl font-bold text-white mb-4">Ready to place your next order?</h2>
             <p className="text-emerald-200/80 mb-6">
-              Start chatting with our AI assistant now. No prescriptions needed to browse.
+              Start chatting with our AI assistant now, or continue through WhatsApp service for ongoing support.
             </p>
             <button
               onClick={() => onNavigate("/chat")}

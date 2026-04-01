@@ -9,11 +9,27 @@ const whatsappRoutes = require("./routes/whatsapp.routes");
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL,
+  process.env.CORS_ORIGIN,
+].filter(Boolean);
+
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
 // Middlewares
 app.use(
   cors({
-    origin: "http://localhost:5173", // frontend URL
-    credentials: true,               // allow cookies
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
   })
 );
 app.use(express.json());
@@ -22,12 +38,13 @@ app.use(express.urlencoded({ extended: true }));
 // 🔐 SESSION FIRST
 app.use(
   session({
-    secret: "agentic-ai-pharmacy",
+    secret: process.env.SESSION_SECRET || "agentic-ai-pharmacy",
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      sameSite: "lax",   // ✅ REQUIRED for localhost
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
     },
   })
 );

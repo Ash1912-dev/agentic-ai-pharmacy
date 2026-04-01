@@ -2,8 +2,7 @@ const cloudinary = require("../config/cloudinary");
 const fs = require("fs");
 const Prescription = require("../models/Prescription.model");
 const Order = require("../models/Order.model"); // ✅ Added: Import Order Model
-const { extractTextFromFile } = require("../utils/ocr");
-const { parseMedicinesFromText } = require("../services/prescription.service");
+const { extractMedicinesFromFile } = require("../utils/ocr");
 
 const uploadPrescription = async (req, res) => {
   try {
@@ -19,21 +18,34 @@ const uploadPrescription = async (req, res) => {
       resource_type: "auto",
     });
 
-    // 2️⃣ OCR (IMAGE ONLY)
-    const extractedText = await extractTextFromFile(
-      file.path,
-      file.mimetype
-    );
 
-    // 3️⃣ AI Parsing
-    const aiResult = await parseMedicinesFromText(extractedText);
 
-    // 4️⃣ Save to DB
+    // 2️⃣ Gemini-based extraction (IMAGE ONLY)
+    let aiResult = await extractMedicinesFromFile(file.path, file.mimetype);
+    // Ensure aiResult is an array of objects for detectedMedicines
+    if (Array.isArray(aiResult) && typeof aiResult[0] === "string") {
+      aiResult = aiResult.map(name => ({ name, dosage: "", frequency: "", duration: "" }));
+    } else if (typeof aiResult === "string") {
+      // Try to parse as JSON array of names
+      try {
+        const arr = JSON.parse(aiResult);
+        if (Array.isArray(arr)) {
+          aiResult = arr.map(name => ({ name, dosage: "", frequency: "", duration: "" }));
+        } else {
+          aiResult = [];
+        }
+      } catch {
+        aiResult = [];
+      }
+    }
+
+
+    // 3️⃣ Save to DB
     const prescription = await Prescription.create({
       user: userId,
       imageUrl: uploadResult.secure_url,
-      extractedText,
-      detectedMedicines: aiResult.medicines,
+      extractedText: null, // No longer extracting raw text
+      detectedMedicines: aiResult,
     });
 
     // 5️⃣ LINK TO LATEST WAITING ORDER (✅ Added Feature)
@@ -52,9 +64,9 @@ const uploadPrescription = async (req, res) => {
     fs.unlinkSync(file.path);
 
     // Kept your original response format
+
     res.status(201).json({
-      medicines: aiResult.medicines.map(m => m.name),
-      rawText: extractedText,
+      medicines: Array.isArray(aiResult) ? aiResult.map(m => m.name) : [],
       prescriptionId: prescription._id,
     });
 

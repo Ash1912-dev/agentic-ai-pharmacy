@@ -20,17 +20,23 @@ const orderSchema = new mongoose.Schema(
       min: 1,
     },
 
+
     status: {
-  type: String,
-  enum: [
-    "CREATED",
-    "WAITING_PRESCRIPTION",
-    "CONFIRMED",
-    "REJECTED",
-    "FULFILLED",
-  ],
-  default: "CREATED",
-},
+      type: String,
+      enum: [
+        "CREATED",
+        "WAITING_PRESCRIPTION",
+        "CONFIRMED",
+        "REJECTED",
+        "FULFILLED",
+      ],
+      default: "CREATED",
+    },
+
+    isFulfilled: {
+      type: Boolean,
+      default: false,
+    },
 
     prescription: {
       type: mongoose.Schema.Types.ObjectId,
