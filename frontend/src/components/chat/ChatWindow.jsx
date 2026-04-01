@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import { sendMessageToAgent } from "../../api/agent.api";
@@ -10,6 +10,7 @@ import { MessageCircle, Loader, AlertTriangle, ShoppingCart } from "lucide-react
 const ChatWindow = () => {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const bottomRef = useRef(null);
 
   const isAiChatEnabled =
@@ -79,6 +80,21 @@ const ChatWindow = () => {
         },
       ]);
     } catch (err) {
+      if (err?.response?.status === 401) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: "agent",
+            text:
+              "Your session expired. Please login again to place an order.",
+            timestamp: new Date(),
+            type: "error",
+          },
+        ]);
+        setTimeout(() => navigate("/login"), 800);
+        return;
+      }
+
       const message =
         err?.response?.data?.message ||
         "Failed to place fallback order. Please try from Medicines tab.";

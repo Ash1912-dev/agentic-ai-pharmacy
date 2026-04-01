@@ -8,8 +8,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const login = async (payload) => {
-    const res = await loginUser(payload);
-    setUser(res.data.user);
+    await loginUser(payload);
+    const me = await getMe();
+    setUser(me.data.user);
   };
 
   const logout = async () => {
