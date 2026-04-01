@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import { signupUser } from "../api/auth.api";
 
 import PublicLanding from "../pages/PublicLanding";
-import Login from "../pages/login";
+import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import Home from "../pages/Home";
 import Chat from "../pages/Chat";

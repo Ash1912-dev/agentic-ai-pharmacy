@@ -38,7 +38,7 @@ const fulfillOrder = async (order) => {
 
   if (user?.phone) {
     const to = `whatsapp:+91${user.phone.replace(/\D/g, "")}`;
-    try {
+   try {
       await twilioClient.messages.create({
         from: process.env.TWILIO_WHATSAPP_FROM,
         to,
