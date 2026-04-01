@@ -9,11 +9,29 @@ const whatsappRoutes = require("./routes/whatsapp.routes");
 
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  process.env.FRONTEND_URL,
-  process.env.CORS_ORIGIN,
-].filter(Boolean);
+const normalizeOrigin = (url) => {
+  if (!url) return null;
+  return url.trim().replace(/\/$/, "");
+};
+
+const allowedOrigins = new Set(
+  [
+    "http://localhost:5173",
+    process.env.FRONTEND_URL,
+    process.env.CORS_ORIGIN,
+  ]
+    .map(normalizeOrigin)
+    .filter(Boolean)
+);
+
+const isVercelPreviewDomain = (origin) => {
+  try {
+    const host = new URL(origin).hostname;
+    return host.endsWith(".vercel.app");
+  } catch {
+    return false;
+  }
+};
 
 if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
@@ -23,13 +41,20 @@ if (process.env.NODE_ENV === "production") {
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      const normalizedOrigin = normalizeOrigin(origin);
+
+      if (
+        !normalizedOrigin ||
+        allowedOrigins.has(normalizedOrigin) ||
+        isVercelPreviewDomain(normalizedOrigin)
+      ) {
         callback(null, true);
         return;
       }
       callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
+    optionsSuccessStatus: 200,
   })
 );
 app.use(express.json());
