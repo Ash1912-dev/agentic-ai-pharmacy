@@ -135,7 +135,7 @@ const uploadPrescription = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("❌ Prescription Extraction Error:", err.message);
+    console.error("❌ Prescription Extraction Error:", err.message, err.stack || "");
 
     if (err.message.includes("PDF support")) {
       return res.status(400).json({
@@ -143,7 +143,26 @@ const uploadPrescription = async (req, res) => {
       });
     }
 
-    res.status(500).json({ message: "Failed to scan prescription" });
+    if (err.message.includes("SARVAM_API_KEY is missing")) {
+      return res.status(500).json({
+        message:
+          "AI prescription scanning is not configured on the server. Please set SARVAM_API_KEY and SARVAM_CHAT_MODEL.",
+      });
+    }
+
+    if (err.message.startsWith("Sarvam API request failed")) {
+      return res.status(502).json({
+        message: "Prescription scanning service failed. Please try again in a few minutes.",
+      });
+    }
+
+    if (err.message.includes("Sarvam returned invalid extraction format")) {
+      return res.status(500).json({
+        message: "Prescription could not be read reliably. Please upload a clearer image.",
+      });
+    }
+
+    return res.status(500).json({ message: "Failed to scan prescription" });
   }
 };
 

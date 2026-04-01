@@ -34,19 +34,32 @@ const extractContentText = (content) => {
 };
 
 const sarvamChat = async ({ messages, model = SARVAM_CHAT_MODEL, temperature = 0.2, maxTokens = 256 }) => {
-  const response = await axios.post(
-    SARVAM_API_URL,
-    {
-      model,
-      messages,
-      temperature,
-      max_tokens: maxTokens,
-    },
-    {
-      headers: getHeaders(),
-      timeout: 20000,
-    }
-  );
+  let response;
+  try {
+    response = await axios.post(
+      SARVAM_API_URL,
+      {
+        model,
+        messages,
+        temperature,
+        max_tokens: maxTokens,
+      },
+      {
+        headers: getHeaders(),
+        timeout: 20000,
+      }
+    );
+  } catch (err) {
+    const status = err.response?.status;
+    const data = err.response?.data;
+    console.error("❌ Sarvam API error", status || "no-status", data || err.message);
+    const details =
+      (data && (data.error?.message || data.message)) ||
+      (err.message && String(err.message));
+    throw new Error(
+      `Sarvam API request failed${status ? ` (${status})` : ""}${details ? `: ${details}` : ""}`
+    );
+  }
 
   const content = response?.data?.choices?.[0]?.message?.content;
   const text = extractContentText(content);
