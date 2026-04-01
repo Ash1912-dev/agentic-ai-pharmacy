@@ -1,33 +1,21 @@
-const axios = require("axios");
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-// ✅ MUST match a model from your list
-const GEMINI_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+const { sarvamChat } = require("./sarvam.service");
 
 const generateAIResponse = async (prompt) => {
-  const response = await axios.post(
-    `${GEMINI_URL}?key=${GEMINI_API_KEY}`,
-    {
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: prompt }],
-        },
-      ],
-      generationConfig: {
-        maxOutputTokens: 180,
-        temperature: 0.2,
+  return sarvamChat({
+    temperature: 0.2,
+    maxTokens: 220,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are an expert pharmacy assistant. Follow safety and return exactly what is asked.",
       },
-    },
-    {
-      headers: { "Content-Type": "application/json" },
-      timeout: 10000,
-    }
-  );
-
-  return response.data.candidates[0].content.parts[0].text;
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+  });
 };
 
 module.exports = { generateAIResponse };

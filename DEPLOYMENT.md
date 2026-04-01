@@ -42,7 +42,9 @@ Example:
 - TWILIO_ACCOUNT_SID
 - TWILIO_AUTH_TOKEN
 - TWILIO_WHATSAPP_FROM
-- GOOGLE_GEMINI_API_KEY
+- SARVAM_API_KEY
+- SARVAM_API_URL (optional, default: https://api.sarvam.ai/v1/chat/completions)
+- SARVAM_CHAT_MODEL
 - CLOUDINARY_CLOUD_NAME
 - CLOUDINARY_API_KEY
 - CLOUDINARY_API_SECRET
@@ -58,6 +60,19 @@ Notes:
 - `AI_ALLOWED_USERS` supports user email, phone, or userId (comma-separated).
 - If `AI_ALLOWED_USERS` is empty, all authenticated users can access AI.
 - Keep this restricted in public demos to avoid abuse.
+
+### Sarvam Setup (Prescription + Agent)
+
+Set these on Render backend:
+
+- SARVAM_API_KEY = your_sarvam_key
+- SARVAM_API_URL = https://api.sarvam.ai/v1/chat/completions
+- SARVAM_CHAT_MODEL = your_agent_model
+
+Notes:
+- Prescription extraction now uses Sarvam only (no local OCR, no Gemini).
+- Agent intent parsing also uses Sarvam.
+- The same `SARVAM_CHAT_MODEL` is used for both chat and prescription extraction.
 
 ## 3) Twilio WhatsApp Webhook (Production)
 

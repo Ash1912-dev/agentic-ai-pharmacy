@@ -62,7 +62,7 @@ This repository includes anti-abuse controls to avoid AI billing spikes on publi
 - Frontend: React, Vite, Tailwind CSS, React Router
 - Backend: Node.js, Express, Passport, Mongoose
 - Database: MongoDB
-- AI: Gemini API (provider can be swapped)
+- AI: Sarvam API
 - Messaging: Twilio WhatsApp API
 - Media/OCR: Cloudinary + OCR pipeline
 - Observability: Langfuse
@@ -84,7 +84,7 @@ cmd/        Go entrypoint
 - MongoDB
 - Twilio account (for WhatsApp)
 - Cloudinary account
-- Gemini API key (if AI enabled)
+- Sarvam API key (if AI enabled)
 
 ### 1) Backend
 
@@ -127,7 +127,9 @@ Integrations:
 - `TWILIO_ACCOUNT_SID`
 - `TWILIO_AUTH_TOKEN`
 - `TWILIO_WHATSAPP_FROM`
-- `GEMINI_API_KEY`
+- `SARVAM_API_KEY`
+- `SARVAM_API_URL` (optional)
+- `SARVAM_CHAT_MODEL`
 - `CLOUDINARY_CLOUD_NAME`
 - `CLOUDINARY_API_KEY`
 - `CLOUDINARY_API_SECRET`
@@ -156,7 +158,7 @@ To avoid AI abuse while keeping core flows visible:
 
 ## Roadmap
 
-- Provider abstraction for Gemini/Groq/OpenAI
+- Provider abstraction for multi-LLM backends
 - Stronger per-user quota persistence in DB
 - Enhanced analytics and admin insights
 - Multi-language chat and notifications

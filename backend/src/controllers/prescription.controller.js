@@ -4,7 +4,9 @@ const Prescription = require("../models/Prescription.model");
 const Order = require("../models/Order.model"); // ✅ Added: Import Order Model
 const Medicine = require("../models/Medicine.model");
 const Inventory = require("../models/Inventory.model");
-const { extractMedicinesFromFile } = require("../utils/ocr");
+const {
+  extractMedicinesFromPrescriptionImage,
+} = require("../services/sarvam.service");
 
 const uploadPrescription = async (req, res) => {
   try {
@@ -26,11 +28,15 @@ const uploadPrescription = async (req, res) => {
 
 
 
-    // 2️⃣ OCR extraction + inventory matching
-    const { extractedText, candidateNames } = await extractMedicinesFromFile(
-      file.path,
-      file.mimetype
-    );
+    // 2️⃣ Sarvam extraction + inventory matching (no local OCR/Gemini)
+    const extracted = await extractMedicinesFromPrescriptionImage({
+      filePath: file.path,
+      mimeType: file.mimetype,
+    });
+
+    const extractedText = extracted
+      .map((m) => [m.name, m.dosage, m.frequency, m.duration].filter(Boolean).join(" "))
+      .join("\n");
 
     const allMedicines = await Medicine.find({ isActive: true });
     const inventories = await Inventory.find({
@@ -42,23 +48,30 @@ const uploadPrescription = async (req, res) => {
     );
 
     const normalizedText = extractedText.toLowerCase();
-    const matchedMedicines = allMedicines.filter((medicine) =>
-      normalizedText.includes(medicine.name.toLowerCase())
-    );
+    const matchedMedicines = allMedicines.filter((medicine) => {
+      const lowerName = medicine.name.toLowerCase();
+      return (
+        normalizedText.includes(lowerName) ||
+        extracted.some((m) => m.name.toLowerCase().includes(lowerName) || lowerName.includes(m.name.toLowerCase()))
+      );
+    });
 
     const matchedNames = new Set(matchedMedicines.map((med) => med.name.toLowerCase()));
-    const unmatchedCandidates = candidateNames.filter(
-      (name) => !matchedNames.has(name.toLowerCase())
-    );
+    const unmatchedCandidates = extracted
+      .map((m) => m.name)
+      .filter((name) => !matchedNames.has(name.toLowerCase()));
 
     const detectedMedicineDetails = [
       ...matchedMedicines.map((med) => {
         const availableQuantity = inventoryByMedicineId.get(med._id.toString()) || 0;
+        const extractedItem = extracted.find(
+          (item) => item.name.toLowerCase() === med.name.toLowerCase()
+        );
         return {
           name: med.name,
-          dosage: "",
-          frequency: "",
-          duration: "",
+          dosage: extractedItem?.dosage || "",
+          frequency: extractedItem?.frequency || "",
+          duration: extractedItem?.duration || "",
           medicineId: med._id,
           inInventory: availableQuantity > 0,
           availableQuantity,
@@ -66,17 +79,22 @@ const uploadPrescription = async (req, res) => {
           requiresPrescription: Boolean(med.requiresPrescription),
         };
       }),
-      ...unmatchedCandidates.map((name) => ({
-        name,
-        dosage: "",
-        frequency: "",
-        duration: "",
-        medicineId: null,
-        inInventory: false,
-        availableQuantity: 0,
-        price: null,
-        requiresPrescription: false,
-      })),
+      ...unmatchedCandidates.map((name) => {
+        const extractedItem = extracted.find(
+          (item) => item.name.toLowerCase() === name.toLowerCase()
+        );
+        return {
+          name,
+          dosage: extractedItem?.dosage || "",
+          frequency: extractedItem?.frequency || "",
+          duration: extractedItem?.duration || "",
+          medicineId: null,
+          inInventory: false,
+          availableQuantity: 0,
+          price: null,
+          requiresPrescription: false,
+        };
+      }),
     ];
 
 
@@ -117,11 +135,11 @@ const uploadPrescription = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("❌ OCR ERROR:", err.message);
+    console.error("❌ Prescription Extraction Error:", err.message);
 
-    if (err.message.includes("PDF OCR")) {
+    if (err.message.includes("PDF support")) {
       return res.status(400).json({
-        message: "Please upload an image prescription (PNG/JPG). PDF support coming soon.",
+        message: "Please upload an image prescription (PNG/JPG). PDF support is disabled in demo mode.",
       });
     }
 
