@@ -126,12 +126,12 @@ const uploadPrescription = async (req, res) => {
     // cleanup
     fs.unlinkSync(file.path);
 
-    // Kept your original response format
-
     res.status(201).json({
+      prescriptionId: prescription._id,
+      imageUrl: uploadResult.secure_url,
+      ocrText: extractedText,
       medicines: detectedMedicineDetails.map((m) => m.name),
       detectedMedicines: detectedMedicineDetails,
-      prescriptionId: prescription._id,
     });
 
   } catch (err) {

@@ -15,6 +15,10 @@ const UploadPrescription = () => {
   const [medicines, setMedicines] = useState([]);
   const [detectedMedicines, setDetectedMedicines] = useState([]);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [ocrText, setOcrText] = useState(null);
+  const [activeTab, setActiveTab] = useState("medicines"); // medicines or ocr
+  const [prescriptionId, setPrescriptionId] = useState(null);
   const navigate = useNavigate();
 
   const handleUpload = async () => {
@@ -36,24 +40,32 @@ const UploadPrescription = () => {
 
       setMedicines(res.data.medicines || []);
       setDetectedMedicines(res.data.detectedMedicines || []);
+      setImageUrl(res.data.imageUrl || null);
+      setOcrText(res.data.ocrText || null);
+      setPrescriptionId(res.data.prescriptionId || null);
       setUploadSuccess(true);
+      setActiveTab("medicines");
     } catch (err) {
       console.error("Prescription upload failed", err);
       alert(err?.response?.data?.message || "Failed to scan prescription. Please try again.");
       setMedicines([]);
       setDetectedMedicines([]);
+      setImageUrl(null);
+      setOcrText(null);
     } finally {
       setLoading(false);
     }
   };
 
   const proceedToChat = () => {
-    const context = `I uploaded a prescription with these medicines: ${medicines.join(
-      ", "
-    )}. Please review and help me order these medicines.`;
+    const medicinesList = detectedMedicines
+      .map((m) => `${m.name}${m.dosage ? ` (${m.dosage})` : ""}`)
+      .join(", ");
+    
+    const context = `I uploaded a prescription (ID: ${prescriptionId}) with these medicines: ${medicinesList}. Please help me order these medicines and ensure they're available.`;
 
     navigate("/chat", {
-      state: { context },
+      state: { context, prescriptionId },
     });
   };
 
@@ -137,74 +149,153 @@ const UploadPrescription = () => {
         </div>
 
         {/* Results */}
-        {medicines.length > 0 && (
+        {uploadSuccess && medicines.length >= 0 && (
           <div className="space-y-6">
-            {uploadSuccess && (
-              <div className="p-4 bg-emerald-500/20 border border-emerald-400/50 rounded-xl flex items-start gap-3">
-                <CheckCircle className="w-6 h-6 text-emerald-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-emerald-300 font-semibold">Prescription scanned successfully!</p>
-                  <p className="text-emerald-200/60 text-sm mt-1">
-                    Found {medicines.length} medicine(s), {matchedCount} matched in your inventory.
-                  </p>
-                </div>
+            {/* Success Message */}
+            <div className="p-4 bg-emerald-500/20 border border-emerald-400/50 rounded-xl flex items-start gap-3">
+              <CheckCircle className="w-6 h-6 text-emerald-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-emerald-300 font-semibold">Prescription scanned successfully!</p>
+                <p className="text-emerald-200/60 text-sm mt-1">
+                  Found {medicines.length} medicine(s), {matchedCount} matched in your inventory.
+                </p>
+              </div>
+            </div>
+
+            {/* Prescription Image */}
+            {imageUrl && (
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-teal-600/20 backdrop-blur-xl border border-emerald-400/40">
+                <h3 className="text-lg font-bold text-white mb-4">📸 Prescription Image</h3>
+                <img
+                  src={imageUrl}
+                  alt="Prescription"
+                  className="w-full max-h-96 object-cover rounded-lg border border-emerald-400/30"
+                />
               </div>
             )}
 
+            {/* Tabs */}
             <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-600/20 to-teal-600/20 backdrop-blur-xl border border-emerald-400/40">
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-emerald-400" />
-                Detected Medicines
-              </h3>
-
-              <div className="space-y-2 mb-6">
-                {(detectedMedicines.length ? detectedMedicines : medicines.map((name) => ({ name }))).map((medicine, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-3 border rounded-lg flex items-start gap-3 ${
-                      medicine.inInventory
-                        ? "bg-emerald-500/10 border-emerald-400/30"
-                        : "bg-red-500/10 border-red-400/30"
+              {/* Tab Buttons */}
+              <div className="flex gap-2 mb-6 border-b border-emerald-400/30">
+                <button
+                  onClick={() => setActiveTab("medicines")}
+                  className={`px-4 py-2 font-semibold border-b-2 transition-all ${
+                    activeTab === "medicines"
+                      ? "border-emerald-400 text-emerald-300"
+                      : "border-transparent text-emerald-200/60 hover:text-emerald-200"
+                  }`}
+                >
+                  💊 Extracted Medicines ({medicines.length})
+                </button>
+                {ocrText && (
+                  <button
+                    onClick={() => setActiveTab("ocr")}
+                    className={`px-4 py-2 font-semibold border-b-2 transition-all ${
+                      activeTab === "ocr"
+                        ? "border-emerald-400 text-emerald-300"
+                        : "border-transparent text-emerald-200/60 hover:text-emerald-200"
                     }`}
                   >
-                    <CheckCircle
-                      className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
-                        medicine.inInventory ? "text-emerald-400" : "text-red-400"
-                      }`}
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-emerald-100 font-medium">{medicine.name}</span>
-                        <span
-                          className={`text-xs px-2 py-1 rounded-md border ${
-                            medicine.inInventory
-                              ? "text-emerald-300 border-emerald-400/40"
-                              : "text-red-300 border-red-400/40"
-                          }`}
-                        >
-                          {medicine.inInventory ? "In Inventory" : "Not in Inventory"}
-                        </span>
-                      </div>
-
-                      <div className="mt-2 text-xs text-emerald-200/80 grid sm:grid-cols-3 gap-2">
-                        <span>Qty: {medicine.availableQuantity ?? 0}</span>
-                        <span>Price: {medicine.price != null ? `₹${medicine.price}` : "N/A"}</span>
-                        <span>
-                          {medicine.requiresPrescription ? "Rx Required" : "No Rx"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                    📝 OCR Text
+                  </button>
+                )}
               </div>
 
-              <button
-                onClick={proceedToChat}
-                className="w-full px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-emerald-500/50"
-              >
-                Proceed to AI Chat
-              </button>
+              {/* Medicines Tab */}
+              {activeTab === "medicines" && (
+                <div className="space-y-3">
+                  {medicines.length === 0 ? (
+                    <p className="text-emerald-200/60 text-center py-8">No medicines could be extracted from the prescription.</p>
+                  ) : (
+                    detectedMedicines.map((medicine, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-4 border rounded-lg ${
+                          medicine.inInventory
+                            ? "bg-emerald-500/10 border-emerald-400/40"
+                            : "bg-amber-500/10 border-amber-400/40"
+                        }`}
+                      >
+                        {/* Medicine Name & Status */}
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <div className="flex-1">
+                            <h4 className="text-emerald-100 font-bold text-lg">{medicine.name}</h4>
+                            {medicine.dosage && (
+                              <p className="text-emerald-200/70 text-sm mt-1">💊 Dosage: {medicine.dosage}</p>
+                            )}
+                          </div>
+                          <span
+                            className={`text-xs px-3 py-1 rounded-full font-semibold border flex-shrink-0 ${
+                              medicine.inInventory
+                                ? "bg-emerald-500/20 text-emerald-300 border-emerald-400/50"
+                                : "bg-amber-500/20 text-amber-300 border-amber-400/50"
+                            }`}
+                          >
+                            {medicine.inInventory ? "✓ In Stock" : "⚠ Not in Stock"}
+                          </span>
+                        </div>
+
+                        {/* Prescription Details */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3 pt-3 border-t border-emerald-400/20">
+                          {medicine.frequency && (
+                            <div>
+                              <span className="text-emerald-200/60 text-xs">Frequency</span>
+                              <p className="text-emerald-100 font-medium text-sm">{medicine.frequency}</p>
+                            </div>
+                          )}
+                          {medicine.duration && (
+                            <div>
+                              <span className="text-emerald-200/60 text-xs">Duration</span>
+                              <p className="text-emerald-100 font-medium text-sm">{medicine.duration}</p>
+                            </div>
+                          )}
+                          {medicine.requiresPrescription && (
+                            <div>
+                              <span className="text-emerald-200/60 text-xs">Type</span>
+                              <p className="text-emerald-100 font-medium text-sm">Rx Required</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Inventory & Price */}
+                        {medicine.inInventory && (
+                          <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-emerald-400/20">
+                            <div>
+                              <span className="text-emerald-200/60 text-xs">Available Stock</span>
+                              <p className="text-emerald-100 font-semibold text-sm">{medicine.availableQuantity} units</p>
+                            </div>
+                            {medicine.price != null && (
+                              <div>
+                                <span className="text-emerald-200/60 text-xs">Price</span>
+                                <p className="text-emerald-100 font-semibold text-sm">₹{medicine.price}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* OCR Text Tab */}
+              {activeTab === "ocr" && ocrText && (
+                <div className="bg-slate-900/50 p-4 rounded-lg border border-emerald-400/20 max-h-96 overflow-y-auto">
+                  <p className="text-emerald-100 text-sm font-mono leading-relaxed whitespace-pre-wrap break-words">
+                    {ocrText}
+                  </p>
+                </div>
+              )}
             </div>
+
+            {/* Proceed to Chat Button */}
+            <button
+              onClick={proceedToChat}
+              className="w-full px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-lg rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-emerald-500/50 flex items-center justify-center gap-2"
+            >
+              💬 Proceed to AI Chat for Ordering
+            </button>
           </div>
         )}
 
