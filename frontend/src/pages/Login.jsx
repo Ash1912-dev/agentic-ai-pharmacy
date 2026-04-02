@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Pill, ArrowRight, AlertCircle, Loader } from "lucide-react";
 
-const Login = ({ onNavigate = () => { }, onLogin = () => { } }) => {
+const Login = ({ onLogin = () => { } }) => {
+  const navigate = useNavigate();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -14,7 +16,7 @@ const Login = ({ onNavigate = () => { }, onLogin = () => { } }) => {
 
     try {
       await onLogin({ identifier, password });
-      onNavigate("/home");
+      navigate("/home");
     } catch (err) {
       if (err.response?.status === 404) {
         setError("User not found. Please sign up first.");
@@ -148,7 +150,7 @@ const Login = ({ onNavigate = () => { }, onLogin = () => { } }) => {
             <p className="text-sm text-center text-emerald-200/70 mt-6">
               New to Agentic Pharmacy?{" "}
               <button
-                onClick={() => onNavigate("/signup")}
+                onClick={() => navigate("/signup")}
                 className="text-emerald-300 hover:text-emerald-200 font-semibold underline transition-colors duration-200 bg-none border-none cursor-pointer p-0"
               >
                 Create account

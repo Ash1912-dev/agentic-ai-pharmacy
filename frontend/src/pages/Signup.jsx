@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Pill, ArrowRight, AlertCircle, Loader, CheckCircle } from "lucide-react";
 
-const Signup = ({ onNavigate = () => { }, onSignup = () => { } }) => {
+const Signup = ({ onSignup = () => { } }) => {
+  const navigate = useNavigate();
   const errorRef = useRef(null);
   const [form, setForm] = useState({
     name: "",
@@ -50,7 +52,7 @@ const Signup = ({ onNavigate = () => { }, onSignup = () => { } }) => {
       await onSignup(payload);
       setSuccess(true);
       setTimeout(() => {
-        onNavigate("/login");
+        navigate("/login");
       }, 2000);
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed. Please try again.");
@@ -303,7 +305,7 @@ const Signup = ({ onNavigate = () => { }, onSignup = () => { } }) => {
               <p className="text-sm text-center text-emerald-200/70 mt-6">
                 Already have an account?{" "}
                 <button
-                  onClick={() => onNavigate("/login")}
+                  onClick={() => navigate("/login")}
                   className="text-emerald-300 hover:text-emerald-200 font-semibold underline transition-colors duration-200 bg-none border-none cursor-pointer p-0"
                 >
                   Login here

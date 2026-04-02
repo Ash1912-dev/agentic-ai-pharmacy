@@ -40,11 +40,11 @@ const AppRoutes = () => {
       {/* Auth Routes - No Layout */}
       <Route
         path="/login"
-        element={<Login onNavigate={navigate} onLogin={login} />}
+        element={<Login onLogin={login} />}
       />
       <Route
         path="/signup"
-        element={<Signup onNavigate={navigate} onSignup={signupUser} />}
+        element={<Signup onSignup={signupUser} />}
       />
 
       {/* ========================================
@@ -57,7 +57,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <AppLayout>
-              <Home onNavigate={navigate} />
+              <Home />
             </AppLayout>
           </ProtectedRoute>
         }

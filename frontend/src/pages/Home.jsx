@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import {
   MessageCircle,
   Upload,
@@ -14,7 +15,9 @@ import {
   MessageSquare,
 } from "lucide-react";
 
-const Home = ({ onNavigate = () => {} }) => {
+const Home = () => {
+  const navigate = useNavigate();
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-emerald-950/50 to-slate-950">
       {/* Background Elements */}
@@ -47,7 +50,7 @@ const Home = ({ onNavigate = () => {} }) => {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Chat - Featured */}
             <div 
-              onClick={() => onNavigate("/chat")}
+              onClick={() => navigate("/chat")}
               className="md:col-span-1 lg:col-span-2 group relative p-8 rounded-2xl bg-gradient-to-br from-teal-600/40 via-cyan-600/30 to-blue-600/20 backdrop-blur-xl border border-teal-400/60 hover:border-teal-300 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-500/30 cursor-pointer overflow-hidden min-h-72"
             >
               <div className="absolute inset-0 bg-gradient-to-tr from-teal-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -73,7 +76,7 @@ const Home = ({ onNavigate = () => {} }) => {
 
             {/* Search Medicines */}
             <div 
-              onClick={() => onNavigate("/medicines")}
+              onClick={() => navigate("/medicines")}
               className="group relative p-8 rounded-2xl bg-gradient-to-br from-emerald-600/40 to-green-600/20 backdrop-blur-xl border border-emerald-400/60 hover:border-emerald-300 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/30 cursor-pointer overflow-hidden min-h-72"
             >
               <div className="absolute inset-0 bg-gradient-to-tr from-emerald-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -98,7 +101,7 @@ const Home = ({ onNavigate = () => {} }) => {
 
             {/* Upload Prescription */}
             <div 
-              onClick={() => onNavigate("/upload-prescription")}
+              onClick={() => navigate("/upload-prescription")}
               className="group relative p-8 rounded-2xl bg-gradient-to-br from-cyan-600/40 to-blue-600/20 backdrop-blur-xl border border-cyan-400/60 hover:border-cyan-300 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/30 cursor-pointer overflow-hidden min-h-72"
             >
               <div className="absolute inset-0 bg-gradient-to-tr from-cyan-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -296,7 +299,7 @@ const Home = ({ onNavigate = () => {} }) => {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
-                onClick={() => onNavigate("/chat")}
+                onClick={() => navigate("/chat")}
                 className="group/btn inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-xl hover:shadow-2xl hover:shadow-emerald-500/50"
               >
                 <MessageCircle className="w-6 h-6 group-hover/btn:animate-bounce" />
@@ -305,7 +308,7 @@ const Home = ({ onNavigate = () => {} }) => {
               </button>
               
               <button
-                onClick={() => onNavigate("/medicines")}
+                onClick={() => navigate("/medicines")}
                 className="inline-flex items-center gap-3 px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/30 hover:border-white/60 backdrop-blur transition-all duration-300 transform hover:scale-105 active:scale-95"
               >
                 <Search className="w-6 h-6" />
