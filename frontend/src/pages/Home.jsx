@@ -19,7 +19,7 @@ const Home = () => {
   const navigate = useNavigate();
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-emerald-950/50 to-slate-950">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-emerald-950/50 to-slate-950 flex flex-col">
       {/* Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-emerald-500 rounded-full mix-blend-screen filter blur-3xl opacity-10 animate-pulse"></div>
@@ -27,7 +27,7 @@ const Home = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Welcome Section */}
         <div className="mb-16">
           <div className="text-center mb-8">
@@ -49,9 +49,9 @@ const Home = () => {
           <h2 className="text-2xl font-bold text-white mb-8">Quick Actions</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Chat - Featured */}
-            <div 
+            <button
               onClick={() => navigate("/chat")}
-              className="md:col-span-1 lg:col-span-2 group relative p-8 rounded-2xl bg-gradient-to-br from-teal-600/40 via-cyan-600/30 to-blue-600/20 backdrop-blur-xl border border-teal-400/60 hover:border-teal-300 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-500/30 cursor-pointer overflow-hidden min-h-72"
+              className="md:col-span-1 lg:col-span-2 group relative p-8 rounded-2xl bg-gradient-to-br from-teal-600/40 via-cyan-600/30 to-blue-600/20 backdrop-blur-xl border border-teal-400/60 hover:border-teal-300 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-500/30 cursor-pointer overflow-hidden min-h-72 text-left bg-none border-0 w-full"
             >
               <div className="absolute inset-0 bg-gradient-to-tr from-teal-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="absolute -top-40 -right-40 w-80 h-80 bg-teal-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
@@ -72,12 +72,12 @@ const Home = () => {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
-            </div>
+            </button>
 
             {/* Search Medicines */}
-            <div 
+            <button
               onClick={() => navigate("/medicines")}
-              className="group relative p-8 rounded-2xl bg-gradient-to-br from-emerald-600/40 to-green-600/20 backdrop-blur-xl border border-emerald-400/60 hover:border-emerald-300 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/30 cursor-pointer overflow-hidden min-h-72"
+              className="group relative p-8 rounded-2xl bg-gradient-to-br from-emerald-600/40 to-green-600/20 backdrop-blur-xl border border-emerald-400/60 hover:border-emerald-300 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/30 cursor-pointer overflow-hidden min-h-72 text-left bg-none border-0 w-full"
             >
               <div className="absolute inset-0 bg-gradient-to-tr from-emerald-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
@@ -97,12 +97,12 @@ const Home = () => {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
-            </div>
+            </button>
 
             {/* Upload Prescription */}
-            <div 
+            <button
               onClick={() => navigate("/upload-prescription")}
-              className="group relative p-8 rounded-2xl bg-gradient-to-br from-cyan-600/40 to-blue-600/20 backdrop-blur-xl border border-cyan-400/60 hover:border-cyan-300 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/30 cursor-pointer overflow-hidden min-h-72"
+              className="group relative p-8 rounded-2xl bg-gradient-to-br from-cyan-600/40 to-blue-600/20 backdrop-blur-xl border border-cyan-400/60 hover:border-cyan-300 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/30 cursor-pointer overflow-hidden min-h-72 text-left bg-none border-0 w-full"
             >
               <div className="absolute inset-0 bg-gradient-to-tr from-cyan-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="absolute -top-40 -right-40 w-80 h-80 bg-cyan-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
@@ -122,7 +122,7 @@ const Home = () => {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
-            </div>
+            </button>
           </div>
         </section>
 
