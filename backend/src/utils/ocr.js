@@ -251,7 +251,6 @@ const parseMedicinesFromOCRText = (ocrText) => {
 
   return uniqueMedicines;
 };
-};
 
 const extractDosageFromText = (text) => {
   const dosageMatch = text.match(
