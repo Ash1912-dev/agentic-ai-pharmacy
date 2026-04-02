@@ -143,6 +143,12 @@ const uploadPrescription = async (req, res) => {
       });
     }
 
+    if (err.message.includes("too large to process") || err.message.includes("remains too large")) {
+      return res.status(413).json({
+        message: "Prescription image is too large. Please upload a smaller/clearer image (ideally under 1MB).",
+      });
+    }
+
     if (err.message.includes("SARVAM_API_KEY is missing")) {
       return res.status(500).json({
         message:

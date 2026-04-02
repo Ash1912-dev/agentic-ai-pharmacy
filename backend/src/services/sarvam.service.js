@@ -1,6 +1,16 @@
 const axios = require("axios");
 const fs = require("fs");
 
+// Optional image compressor for large prescriptions. If unavailable, we fall back
+// to simple size checks and ask the user to upload a smaller image.
+let sharp = null;
+try {
+  // eslint-disable-next-line global-require, import/no-extraneous-dependencies
+  sharp = require("sharp");
+} catch {
+  sharp = null;
+}
+
 const SARVAM_API_URL =
   process.env.SARVAM_API_URL || "https://api.sarvam.ai/v1/chat/completions";
 const SARVAM_CHAT_MODEL = process.env.SARVAM_CHAT_MODEL || "sarvam-m";
@@ -84,7 +94,41 @@ const extractMedicinesFromPrescriptionImage = async ({ filePath, mimeType }) => 
     throw new Error("Please upload an image prescription (PNG/JPG). PDF support is disabled in demo mode.");
   }
 
-  const base64 = fs.readFileSync(filePath).toString("base64");
+  const originalBuffer = fs.readFileSync(filePath);
+
+  // Rough safety cap: keep the image small enough that its base64
+  // representation won't blow past Sarvam's 64k token window.
+  const MAX_IMAGE_BYTES = 256 * 1024; // 256 KB
+
+  let imageBuffer = originalBuffer;
+
+  if (originalBuffer.length > MAX_IMAGE_BYTES) {
+    if (!sharp) {
+      throw new Error(
+        "Prescription image is too large to process on this server. Please upload a smaller/clearer image (under ~250KB)."
+      );
+    }
+
+    try {
+      imageBuffer = await sharp(originalBuffer)
+        .resize({ width: 1024, height: 1024, fit: "inside" })
+        .jpeg({ quality: 70 })
+        .toBuffer();
+    } catch (e) {
+      console.error("❌ Failed to compress prescription image with sharp", e.message || e);
+      throw new Error(
+        "Prescription image could not be processed. Please upload a smaller/clearer image."
+      );
+    }
+
+    if (imageBuffer.length > MAX_IMAGE_BYTES) {
+      throw new Error(
+        "Prescription image remains too large after compression. Please upload a smaller/clearer image."
+      );
+    }
+  }
+
+  const base64 = imageBuffer.toString("base64");
 
   const systemPrompt =
     "You are a strict medical prescription extraction expert. Extract only medicine names that are explicitly written on the prescription. Do not infer unknown medicines.";
