@@ -96,9 +96,9 @@ const extractMedicinesFromPrescriptionImage = async ({ filePath, mimeType }) => 
 
   const originalBuffer = fs.readFileSync(filePath);
 
-  // Rough safety cap: keep the image small enough that its base64
-  // representation won't blow past Sarvam's 64k token window.
-  const MAX_IMAGE_BYTES = 256 * 1024; // 256 KB
+  // Conservative cap so that the base64 string stays well within
+  // Sarvam's 64k token window. 80KB → ~110KB base64 → ~27k tokens.
+  const MAX_IMAGE_BYTES = 80 * 1024; // 80 KB
 
   let imageBuffer = originalBuffer;
 
@@ -129,6 +129,15 @@ const extractMedicinesFromPrescriptionImage = async ({ filePath, mimeType }) => 
   }
 
   const base64 = imageBuffer.toString("base64");
+
+  // Extra safety: short-circuit if the base64 text is still huge for any reason.
+  // Roughly 1 token ≈ 4 characters. Keep under ~40k tokens.
+  const MAX_BASE64_CHARS = 160000; // ~40k tokens
+  if (base64.length > MAX_BASE64_CHARS) {
+    throw new Error(
+      "Prescription image text representation is too large to send to the AI safely. Please upload a smaller/clearer image."
+    );
+  }
 
   const systemPrompt =
     "You are a strict medical prescription extraction expert. Extract only medicine names that are explicitly written on the prescription. Do not infer unknown medicines.";
