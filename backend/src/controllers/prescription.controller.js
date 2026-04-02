@@ -149,6 +149,12 @@ const uploadPrescription = async (req, res) => {
       });
     }
 
+    if (err.message.includes("Could not extract any medicines")) {
+      return res.status(400).json({
+        message: "Could not extract any medicines from prescription. Please try a clearer, well-lit image.",
+      });
+    }
+
     if (err.message.includes("SARVAM_API_KEY is missing")) {
       return res.status(500).json({
         message:

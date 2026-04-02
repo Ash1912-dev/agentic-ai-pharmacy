@@ -1,5 +1,5 @@
 const axios = require("axios");
-const { extractTextFromImage } = require("../utils/ocr");
+const { extractTextFromImage, parseMedicinesFromOCRText } = require("../utils/ocr");
 
 const SARVAM_API_URL =
   process.env.SARVAM_API_URL || "https://api.sarvam.ai/v1/chat/completions";
@@ -110,10 +110,10 @@ const extractMedicinesFromPrescriptionImage = async ({ filePath, mimeType }) => 
     : ocrText;
 
   const systemPrompt =
-    "You are a strict medical prescription extraction expert. Extract only medicine names that are explicitly written on the prescription. Do not infer unknown medicines.";
+    "You are a medical prescription extraction expert. Extract ONLY medicines that are explicitly written on the prescription. Return JSON format only.";
 
   const userPrompt =
-    "Return only valid JSON in this exact schema: {\"medicines\":[{\"name\":\"\",\"dosage\":\"\",\"frequency\":\"\",\"duration\":\"\"}]}. If nothing is readable return {\"medicines\":[]}.";
+    "Extract ALL medicines from this prescription text. Include: name, dosage (if present), frequency (how often to take), duration (how many days/weeks). Return ONLY valid JSON in this exact format: {\"medicines\":[{\"name\":\"\",\"dosage\":\"\",\"frequency\":\"\",\"duration\":\"\"}]}. If no medicines found return {\"medicines\":[]}.";
 
   // Sarvam's text chat API expects message content to be a string.
   // We pass OCR text from the prescription instead of raw image/base64
@@ -121,6 +121,8 @@ const extractMedicinesFromPrescriptionImage = async ({ filePath, mimeType }) => 
   const userContent = `${userPrompt}\n\nOCR extracted text from prescription:\n"""${safeOcrText}"""`;
 
   let text;
+  let usedSarvam = false;
+
   try {
     text = await sarvamChat({
       model: SARVAM_CHAT_MODEL,
@@ -134,28 +136,56 @@ const extractMedicinesFromPrescriptionImage = async ({ filePath, mimeType }) => 
         },
       ],
     });
+    usedSarvam = true;
   } catch (err) {
     const msg = String(err?.message || "");
     if (msg.includes("Sarvam returned empty content")) {
-      // Treat as "no medicines detected" instead of a hard failure
-      return [];
+      console.log("⚠️  Sarvam returned empty, trying local parser...");
+      // Fall back to local parsing
+      text = null;
+    } else {
+      throw err;
     }
-    throw err;
   }
 
-  const parsed = parseJsonSafely(text);
-  if (!parsed || !Array.isArray(parsed.medicines)) {
-    throw new Error("Sarvam returned invalid extraction format");
+  let medicines = [];
+
+  // Try Sarvam first
+  if (text) {
+    const parsed = parseJsonSafely(text);
+    if (parsed && Array.isArray(parsed.medicines)) {
+      medicines = parsed.medicines
+        .map((m) => ({
+          name: String(m?.name || "").trim(),
+          dosage: String(m?.dosage || "").trim(),
+          frequency: String(m?.frequency || "").trim(),
+          duration: String(m?.duration || "").trim(),
+        }))
+        .filter((m) => m.name);
+    }
   }
 
-  return parsed.medicines
-    .map((m) => ({
-      name: String(m?.name || "").trim(),
-      dosage: String(m?.dosage || "").trim(),
-      frequency: String(m?.frequency || "").trim(),
-      duration: String(m?.duration || "").trim(),
-    }))
-    .filter((m) => m.name);
+  // Fallback to local parser if Sarvam failed or returned nothing
+  if (medicines.length === 0) {
+    console.log(
+      "📋 Falling back to local prescription parser for OCR text..."
+    );
+    medicines = parseMedicinesFromOCRText(ocrText);
+  }
+
+  if (medicines.length === 0) {
+    console.warn(
+      "⚠️ No medicines extracted. OCR text length: ",
+      ocrText.length,
+      "Used Sarvam:",
+      usedSarvam
+    );
+    throw new Error(
+      "Could not extract any medicines from prescription. Please try a clearer image."
+    );
+  }
+
+  return medicines;
 };
 
 module.exports = {
