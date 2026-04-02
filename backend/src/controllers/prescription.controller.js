@@ -150,8 +150,13 @@ const uploadPrescription = async (req, res) => {
     }
 
     if (err.message.includes("Could not extract any medicines")) {
+      // Include OCR debug info in development
+      const debugInfo = process.env.NODE_ENV !== 'production' 
+        ? { extractionError: "OCR text could not be parsed into medicines" }
+        : {};
       return res.status(400).json({
         message: "Could not extract any medicines from prescription. Please try a clearer, well-lit image.",
+        ...debugInfo,
       });
     }
 

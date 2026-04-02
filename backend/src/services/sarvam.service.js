@@ -86,6 +86,7 @@ const extractMedicinesFromPrescriptionImage = async ({ filePath, mimeType }) => 
   if (!mimeType || !mimeType.startsWith("image/")) {
     throw new Error("Please upload an image prescription (PNG/JPG). PDF support is disabled in demo mode.");
   }
+
   let ocrText;
   try {
     ocrText = await extractTextFromImage(filePath);
@@ -170,6 +171,7 @@ const extractMedicinesFromPrescriptionImage = async ({ filePath, mimeType }) => 
     console.log(
       "📋 Falling back to local prescription parser for OCR text..."
     );
+    console.log("📄 OCR Text being parsed:", ocrText.substring(0, 800));
     medicines = parseMedicinesFromOCRText(ocrText);
   }
 
@@ -180,11 +182,16 @@ const extractMedicinesFromPrescriptionImage = async ({ filePath, mimeType }) => 
       "Used Sarvam:",
       usedSarvam
     );
+    console.warn(
+      "Full OCR text that failed to parse:\n",
+      ocrText
+    );
     throw new Error(
       "Could not extract any medicines from prescription. Please try a clearer image."
     );
   }
 
+  console.log(`✅ Successfully extracted ${medicines.length} medicine(s)`);
   return medicines;
 };
 
