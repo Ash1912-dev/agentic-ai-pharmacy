@@ -17,9 +17,10 @@ import {
 
 const Home = () => {
   const navigate = useNavigate();
+  const goTo = (path) => () => navigate(path);
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-emerald-950/50 to-slate-950 flex flex-col">
+    <div className="w-full bg-transparent">
       {/* Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-emerald-500 rounded-full mix-blend-screen filter blur-3xl opacity-10 animate-pulse"></div>
@@ -27,7 +28,7 @@ const Home = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-16">
         {/* Welcome Section */}
         <div className="mb-16">
           <div className="text-center mb-8">
@@ -50,8 +51,8 @@ const Home = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Chat - Featured */}
             <button
-              onClick={() => navigate("/chat")}
-              className="md:col-span-1 lg:col-span-2 group relative p-8 rounded-2xl bg-gradient-to-br from-teal-600/40 via-cyan-600/30 to-blue-600/20 backdrop-blur-xl border border-teal-400/60 hover:border-teal-300 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-500/30 cursor-pointer overflow-hidden min-h-72 text-left bg-none border-0 w-full"
+              onClick={goTo("/chat")}
+              className="md:col-span-1 lg:col-span-2 group relative p-8 rounded-2xl bg-gradient-to-br from-teal-600/40 via-cyan-600/30 to-blue-600/20 backdrop-blur-xl border border-teal-400/60 hover:border-teal-300 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-500/30 cursor-pointer overflow-hidden min-h-72 text-left w-full"
             >
               <div className="absolute inset-0 bg-gradient-to-tr from-teal-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="absolute -top-40 -right-40 w-80 h-80 bg-teal-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
@@ -76,8 +77,8 @@ const Home = () => {
 
             {/* Search Medicines */}
             <button
-              onClick={() => navigate("/medicines")}
-              className="group relative p-8 rounded-2xl bg-gradient-to-br from-emerald-600/40 to-green-600/20 backdrop-blur-xl border border-emerald-400/60 hover:border-emerald-300 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/30 cursor-pointer overflow-hidden min-h-72 text-left bg-none border-0 w-full"
+              onClick={goTo("/medicines")}
+              className="group relative p-8 rounded-2xl bg-gradient-to-br from-emerald-600/40 to-green-600/20 backdrop-blur-xl border border-emerald-400/60 hover:border-emerald-300 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/30 cursor-pointer overflow-hidden min-h-72 text-left w-full"
             >
               <div className="absolute inset-0 bg-gradient-to-tr from-emerald-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
@@ -101,8 +102,8 @@ const Home = () => {
 
             {/* Upload Prescription */}
             <button
-              onClick={() => navigate("/upload-prescription")}
-              className="group relative p-8 rounded-2xl bg-gradient-to-br from-cyan-600/40 to-blue-600/20 backdrop-blur-xl border border-cyan-400/60 hover:border-cyan-300 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/30 cursor-pointer overflow-hidden min-h-72 text-left bg-none border-0 w-full"
+              onClick={goTo("/upload-prescription")}
+              className="group relative p-8 rounded-2xl bg-gradient-to-br from-cyan-600/40 to-blue-600/20 backdrop-blur-xl border border-cyan-400/60 hover:border-cyan-300 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/30 cursor-pointer overflow-hidden min-h-72 text-left w-full"
             >
               <div className="absolute inset-0 bg-gradient-to-tr from-cyan-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="absolute -top-40 -right-40 w-80 h-80 bg-cyan-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
@@ -131,7 +132,7 @@ const Home = () => {
           <h2 className="text-3xl font-bold text-white mb-12 text-center">Why Choose Us</h2>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="group p-8 rounded-2xl bg-gradient-to-br from-emerald-600/30 to-emerald-600/10 border border-emerald-400/50 hover:border-emerald-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/20 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between">
+            <button onClick={goTo("/upload-prescription")} className="group relative p-8 rounded-2xl bg-gradient-to-br from-emerald-600/30 to-emerald-600/10 border border-emerald-400/50 hover:border-emerald-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/20 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between text-left w-full">
               <div className="absolute inset-0 bg-gradient-to-tr from-emerald-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="absolute -top-20 -right-20 w-40 h-40 bg-emerald-500 rounded-full mix-blend-screen filter blur-2xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
               
@@ -142,9 +143,9 @@ const Home = () => {
                 <h3 className="font-bold text-white mb-3 text-lg">Safety Verified</h3>
                 <p className="text-emerald-100/80 leading-relaxed">All medicines verified against prescriptions with pharmacist review.</p>
               </div>
-            </div>
+            </button>
 
-            <div className="group p-8 rounded-2xl bg-gradient-to-br from-teal-600/30 to-teal-600/10 border border-teal-400/50 hover:border-teal-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-500/20 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between">
+            <button onClick={goTo("/reminders")} className="group relative p-8 rounded-2xl bg-gradient-to-br from-teal-600/30 to-teal-600/10 border border-teal-400/50 hover:border-teal-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-teal-500/20 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between text-left w-full">
               <div className="absolute inset-0 bg-gradient-to-tr from-teal-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-teal-500 rounded-full mix-blend-screen filter blur-2xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
               
@@ -155,9 +156,9 @@ const Home = () => {
                 <h3 className="font-bold text-white mb-3 text-lg">Smart Refills</h3>
                 <p className="text-teal-100/80 leading-relaxed">AI predicts refill times and sends alerts automatically.</p>
               </div>
-            </div>
+            </button>
 
-            <div className="group p-8 rounded-2xl bg-gradient-to-br from-cyan-600/30 to-cyan-600/10 border border-cyan-400/50 hover:border-cyan-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/20 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between">
+            <button onClick={goTo("/orders")} className="group relative p-8 rounded-2xl bg-gradient-to-br from-cyan-600/30 to-cyan-600/10 border border-cyan-400/50 hover:border-cyan-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/20 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between text-left w-full">
               <div className="absolute inset-0 bg-gradient-to-tr from-cyan-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="absolute -top-20 -left-20 w-40 h-40 bg-cyan-500 rounded-full mix-blend-screen filter blur-2xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
               
@@ -168,9 +169,9 @@ const Home = () => {
                 <h3 className="font-bold text-white mb-3 text-lg">Instant Delivery</h3>
                 <p className="text-cyan-100/80 leading-relaxed">Orders processed instantly with fast delivery to your home.</p>
               </div>
-            </div>
+            </button>
 
-            <div className="group p-8 rounded-2xl bg-gradient-to-br from-blue-600/30 to-blue-600/10 border border-blue-400/50 hover:border-blue-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/20 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between">
+            <button onClick={goTo("/chat")} className="group relative p-8 rounded-2xl bg-gradient-to-br from-blue-600/30 to-blue-600/10 border border-blue-400/50 hover:border-blue-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/20 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between text-left w-full">
               <div className="absolute inset-0 bg-gradient-to-tr from-blue-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-blue-500 rounded-full mix-blend-screen filter blur-2xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
               
@@ -181,9 +182,9 @@ const Home = () => {
                 <h3 className="font-bold text-white mb-3 text-lg">WhatsApp Support</h3>
                 <p className="text-blue-100/80 leading-relaxed">24/7 medicine assistance through WhatsApp conversations.</p>
               </div>
-            </div>
+            </button>
 
-            <div className="group p-8 rounded-2xl bg-gradient-to-br from-purple-600/30 to-purple-600/10 border border-purple-400/50 hover:border-purple-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between">
+            <button onClick={goTo("/reminders")} className="group relative p-8 rounded-2xl bg-gradient-to-br from-purple-600/30 to-purple-600/10 border border-purple-400/50 hover:border-purple-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between text-left w-full">
               <div className="absolute inset-0 bg-gradient-to-tr from-purple-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="absolute -top-20 -right-20 w-40 h-40 bg-purple-500 rounded-full mix-blend-screen filter blur-2xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
               
@@ -194,9 +195,9 @@ const Home = () => {
                 <h3 className="font-bold text-white mb-3 text-lg">Daily Reminders</h3>
                 <p className="text-purple-100/80 leading-relaxed">Customizable medicine reminders with pause and resume options.</p>
               </div>
-            </div>
+            </button>
 
-            <div className="group p-8 rounded-2xl bg-gradient-to-br from-pink-600/30 to-pink-600/10 border border-pink-400/50 hover:border-pink-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between">
+            <button onClick={goTo("/orders")} className="group relative p-8 rounded-2xl bg-gradient-to-br from-pink-600/30 to-pink-600/10 border border-pink-400/50 hover:border-pink-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between text-left w-full">
               <div className="absolute inset-0 bg-gradient-to-tr from-pink-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-pink-500 rounded-full mix-blend-screen filter blur-2xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
               
@@ -207,9 +208,9 @@ const Home = () => {
                 <h3 className="font-bold text-white mb-3 text-lg">Order Tracking</h3>
                 <p className="text-pink-100/80 leading-relaxed">Real-time tracking of current and past orders with live updates.</p>
               </div>
-            </div>
+            </button>
 
-            <div className="group p-8 rounded-2xl bg-gradient-to-br from-orange-600/30 to-orange-600/10 border border-orange-400/50 hover:border-orange-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-orange-500/20 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between">
+            <button onClick={goTo("/upload-prescription")} className="group relative p-8 rounded-2xl bg-gradient-to-br from-orange-600/30 to-orange-600/10 border border-orange-400/50 hover:border-orange-300/80 transition-all duration-300 hover:shadow-2xl hover:shadow-orange-500/20 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between text-left w-full">
               <div className="absolute inset-0 bg-gradient-to-tr from-orange-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="absolute -top-20 -left-20 w-40 h-40 bg-orange-500 rounded-full mix-blend-screen filter blur-2xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
               
@@ -220,7 +221,7 @@ const Home = () => {
                 <h3 className="font-bold text-white mb-3 text-lg">Rx Upload + AI</h3>
                 <p className="text-orange-100/80 leading-relaxed">Convert prescriptions to medicine lists with instant AI extraction.</p>
               </div>
-            </div>
+            </button>
           </div>
         </section>
 
@@ -235,11 +236,11 @@ const Home = () => {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { step: 1, title: "Choose", desc: "Select medicines or upload prescription", icon: Pill, color: "emerald" },
-                { step: 2, title: "Confirm", desc: "AI verifies details via smart chat", icon: CheckCircle, color: "teal" },
-                { step: 3, title: "Order", desc: "Instantly placed & processed", icon: Zap, color: "cyan" },
-                { step: 4, title: "Deliver", desc: "Fast shipping to your location", icon: ArrowRight, color: "blue" }
-              ].map(({ step, title, desc, icon: Icon, color }) => {
+                { step: 1, title: "Choose", desc: "Select medicines or upload prescription", icon: Pill, color: "emerald", path: "/medicines" },
+                { step: 2, title: "Confirm", desc: "AI verifies details via smart chat", icon: CheckCircle, color: "teal", path: "/chat" },
+                { step: 3, title: "Order", desc: "Instantly placed & processed", icon: Zap, color: "cyan", path: "/orders" },
+                { step: 4, title: "Deliver", desc: "Fast shipping to your location", icon: ArrowRight, color: "blue", path: "/orders" }
+              ].map(({ step, title, desc, icon: Icon, color, path }) => {
                 const colorMap = {
                   emerald: { bg: "from-emerald-600/30 to-emerald-600/10", border: "border-emerald-400/50", hover: "hover:border-emerald-300/80 hover:shadow-emerald-500/20", circle: "from-emerald-500 to-green-500", icon: "text-emerald-200", glow: "bg-emerald-500" },
                   teal: { bg: "from-teal-600/30 to-teal-600/10", border: "border-teal-400/50", hover: "hover:border-teal-300/80 hover:shadow-teal-500/20", circle: "from-teal-500 to-cyan-500", icon: "text-teal-200", glow: "bg-teal-500" },
@@ -253,7 +254,11 @@ const Home = () => {
                     {/* Connector - show on large, between cards */}
                     {step < 4 && <div className="hidden lg:block absolute -right-3 top-1/3 w-6 h-1 bg-gradient-to-r from-transparent to-emerald-400/60 transform -translate-y-1/2 z-20"></div>}
                     
-                    <div className={`relative p-8 rounded-2xl bg-gradient-to-br ${colors.bg} ${colors.border} backdrop-blur-xl border hover:shadow-2xl ${colors.hover} transition-all duration-300 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between group`}>
+                    <button
+                      type="button"
+                      onClick={goTo(path)}
+                      className={`relative p-8 rounded-2xl bg-gradient-to-br ${colors.bg} ${colors.border} backdrop-blur-xl border hover:shadow-2xl ${colors.hover} transition-all duration-300 hover:-translate-y-2 cursor-pointer overflow-hidden min-h-72 flex flex-col justify-between group text-left w-full`}
+                    >
                       <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       
                       {/* Animated glow blob */}
@@ -268,7 +273,7 @@ const Home = () => {
                         <h3 className="font-bold text-white mb-3 text-2xl">{title}</h3>
                         <p className="text-white/80 leading-relaxed">{desc}</p>
                       </div>
-                    </div>
+                    </button>
                   </div>
                 );
               })}
@@ -299,7 +304,7 @@ const Home = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
-                onClick={() => navigate("/chat")}
+                onClick={goTo("/chat")}
                 className="group/btn inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-xl hover:shadow-2xl hover:shadow-emerald-500/50"
               >
                 <MessageCircle className="w-6 h-6 group-hover/btn:animate-bounce" />
@@ -308,7 +313,7 @@ const Home = () => {
               </button>
               
               <button
-                onClick={() => navigate("/medicines")}
+                onClick={goTo("/medicines")}
                 className="inline-flex items-center gap-3 px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/30 hover:border-white/60 backdrop-blur transition-all duration-300 transform hover:scale-105 active:scale-95"
               >
                 <Search className="w-6 h-6" />
