@@ -1,15 +1,5 @@
 const axios = require("axios");
-const fs = require("fs");
-
-// Optional image compressor for large prescriptions. If unavailable, we fall back
-// to simple size checks and ask the user to upload a smaller image.
-let sharp = null;
-try {
-  // eslint-disable-next-line global-require, import/no-extraneous-dependencies
-  sharp = require("sharp");
-} catch {
-  sharp = null;
-}
+const { extractTextFromImage } = require("../utils/ocr");
 
 const SARVAM_API_URL =
   process.env.SARVAM_API_URL || "https://api.sarvam.ai/v1/chat/completions";
@@ -71,8 +61,11 @@ const sarvamChat = async ({ messages, model = SARVAM_CHAT_MODEL, temperature = 0
     );
   }
 
-  const content = response?.data?.choices?.[0]?.message?.content;
-  const text = extractContentText(content);
+  const choice = response?.data?.choices?.[0];
+  const rawContent =
+    (choice && (choice.message?.content ?? choice.content ?? choice.text)) || null;
+
+  const text = extractContentText(rawContent);
   if (!text) {
     throw new Error("Sarvam returned empty content");
   }
@@ -93,51 +86,28 @@ const extractMedicinesFromPrescriptionImage = async ({ filePath, mimeType }) => 
   if (!mimeType || !mimeType.startsWith("image/")) {
     throw new Error("Please upload an image prescription (PNG/JPG). PDF support is disabled in demo mode.");
   }
-
-  const originalBuffer = fs.readFileSync(filePath);
-
-  // Conservative cap so that the base64 string stays well within
-  // Sarvam's 64k token window. 80KB → ~110KB base64 → ~27k tokens.
-  const MAX_IMAGE_BYTES = 80 * 1024; // 80 KB
-
-  let imageBuffer = originalBuffer;
-
-  if (originalBuffer.length > MAX_IMAGE_BYTES) {
-    if (!sharp) {
-      throw new Error(
-        "Prescription image is too large to process on this server. Please upload a smaller/clearer image (under ~250KB)."
-      );
-    }
-
-    try {
-      imageBuffer = await sharp(originalBuffer)
-        .resize({ width: 1024, height: 1024, fit: "inside" })
-        .jpeg({ quality: 70 })
-        .toBuffer();
-    } catch (e) {
-      console.error("❌ Failed to compress prescription image with sharp", e.message || e);
-      throw new Error(
-        "Prescription image could not be processed. Please upload a smaller/clearer image."
-      );
-    }
-
-    if (imageBuffer.length > MAX_IMAGE_BYTES) {
-      throw new Error(
-        "Prescription image remains too large after compression. Please upload a smaller/clearer image."
-      );
-    }
-  }
-
-  const base64 = imageBuffer.toString("base64");
-
-  // Extra safety: short-circuit if the base64 text is still huge for any reason.
-  // Roughly 1 token ≈ 4 characters. Keep under ~40k tokens.
-  const MAX_BASE64_CHARS = 160000; // ~40k tokens
-  if (base64.length > MAX_BASE64_CHARS) {
+  let ocrText;
+  try {
+    ocrText = await extractTextFromImage(filePath);
+  } catch (e) {
+    console.error("❌ OCR failed while reading prescription image", e?.message || e);
     throw new Error(
-      "Prescription image text representation is too large to send to the AI safely. Please upload a smaller/clearer image."
+      "Prescription could not be read reliably. Please upload a clearer image."
     );
   }
+
+  ocrText = String(ocrText || "").trim();
+  if (!ocrText) {
+    throw new Error(
+      "Prescription could not be read reliably. Please upload a clearer image."
+    );
+  }
+
+  // Keep OCR text small for Sarvam; prescriptions are short.
+  const MAX_OCR_CHARS = 8000;
+  const safeOcrText = ocrText.length > MAX_OCR_CHARS
+    ? ocrText.slice(0, MAX_OCR_CHARS)
+    : ocrText;
 
   const systemPrompt =
     "You are a strict medical prescription extraction expert. Extract only medicine names that are explicitly written on the prescription. Do not infer unknown medicines.";
@@ -146,22 +116,32 @@ const extractMedicinesFromPrescriptionImage = async ({ filePath, mimeType }) => 
     "Return only valid JSON in this exact schema: {\"medicines\":[{\"name\":\"\",\"dosage\":\"\",\"frequency\":\"\",\"duration\":\"\"}]}. If nothing is readable return {\"medicines\":[]}.";
 
   // Sarvam's text chat API expects message content to be a string.
-  // We embed a short description plus a data URL representation of the image
-  // so the payload matches the expected schema.
-  const userContent = `${userPrompt}\n\nPrescription image data URL: data:${mimeType};base64,${base64}`;
+  // We pass OCR text from the prescription instead of raw image/base64
+  // to keep the prompt small and within context limits.
+  const userContent = `${userPrompt}\n\nOCR extracted text from prescription:\n"""${safeOcrText}"""`;
 
-  const text = await sarvamChat({
-    model: SARVAM_CHAT_MODEL,
-    maxTokens: 500,
-    temperature: 0,
-    messages: [
-      { role: "system", content: systemPrompt },
-      {
-        role: "user",
-        content: userContent,
-      },
-    ],
-  });
+  let text;
+  try {
+    text = await sarvamChat({
+      model: SARVAM_CHAT_MODEL,
+      maxTokens: 500,
+      temperature: 0,
+      messages: [
+        { role: "system", content: systemPrompt },
+        {
+          role: "user",
+          content: userContent,
+        },
+      ],
+    });
+  } catch (err) {
+    const msg = String(err?.message || "");
+    if (msg.includes("Sarvam returned empty content")) {
+      // Treat as "no medicines detected" instead of a hard failure
+      return [];
+    }
+    throw err;
+  }
 
   const parsed = parseJsonSafely(text);
   if (!parsed || !Array.isArray(parsed.medicines)) {
