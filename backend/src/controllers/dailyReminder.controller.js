@@ -117,7 +117,26 @@ const toggleDailyReminder = async (req, res) => {
         .json({ message: "Reminder not found or unauthorized" });
     }
 
+    const wasEnabled = reminder.enabled;
     reminder.enabled = !reminder.enabled;
+
+    // When resuming, rebase the schedule to "now" so it does not continue
+    // from the previously stopped timeline.
+    if (!wasEnabled && reminder.enabled) {
+      const now = new Date();
+      const previousDurationMs =
+        reminder.startDate && reminder.endDate
+          ? reminder.endDate.getTime() - reminder.startDate.getTime()
+          : 0;
+      const safeDurationMs = Math.max(previousDurationMs, 24 * 60 * 60 * 1000);
+
+      reminder.startDate = now;
+      reminder.endDate = new Date(now.getTime() + safeDurationMs);
+      reminder.times = [now.toTimeString().slice(0, 5)];
+      reminder.lastNotifiedAt = null;
+      reminder.awaitingResponse = false;
+    }
+
     await reminder.save();
 
     res.json({
