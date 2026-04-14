@@ -1,6 +1,11 @@
 const cron = require("node-cron");
 const DailyIntakeReminder = require("../models/DailyIntakeReminder.model");
 const twilioClient = require("../config/twilio");
+const {
+  APP_TIMEZONE,
+  getTimeHHMMInTimezone,
+  getDateKeyInTimezone,
+} = require("../utils/time");
 
 // Format phone to +91XXXXXXXXXX or +XXXXXXXXXX format
 const formatPhoneWithCode = (phone) => {
@@ -12,9 +17,12 @@ const formatPhoneWithCode = (phone) => {
 cron.schedule("* * * * *", async () => {
   try {
     const now = new Date();
-    const timeNow = now.toTimeString().slice(0, 5); // HH:MM format
+    const timeNow = getTimeHHMMInTimezone(now);
+    const todayKey = getDateKeyInTimezone(now);
 
-    console.log(`📅 Daily intake reminder cron running at ${timeNow}`);
+    console.log(
+      `📅 Daily intake reminder cron running at ${timeNow} (${APP_TIMEZONE})`
+    );
 
     // Find all ACTIVE daily intake reminders within date range and matching time
     const reminders = await DailyIntakeReminder.find({
@@ -31,7 +39,7 @@ cron.schedule("* * * * *", async () => {
       // Check if we've already notified today
       if (
         reminder.lastNotifiedAt &&
-        reminder.lastNotifiedAt.toDateString() === now.toDateString()
+        getDateKeyInTimezone(reminder.lastNotifiedAt) === todayKey
       ) {
         console.log(
           `⏭️ Already notified today for ${reminder.medicine.name}, skipping`

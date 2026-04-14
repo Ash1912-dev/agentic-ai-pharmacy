@@ -1,4 +1,5 @@
 const DailyIntakeReminder = require("../models/DailyIntakeReminder.model");
+const { getTimeHHMMInTimezone } = require("../utils/time");
 
 /* =====================================================
    CREATE REMINDER
@@ -132,7 +133,7 @@ const toggleDailyReminder = async (req, res) => {
 
       reminder.startDate = now;
       reminder.endDate = new Date(now.getTime() + safeDurationMs);
-      reminder.times = [now.toTimeString().slice(0, 5)];
+      reminder.times = [getTimeHHMMInTimezone(now)];
       reminder.lastNotifiedAt = null;
       reminder.awaitingResponse = false;
     }
