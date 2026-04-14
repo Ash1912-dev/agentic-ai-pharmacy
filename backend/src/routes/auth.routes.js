@@ -5,6 +5,13 @@ const { verifyToken, getBearerToken } = require("../utils/token");
 
 const router = express.Router();
 
+const getFrontendBaseUrl = () =>
+  (process.env.FRONTEND_URL ||
+    process.env.CORS_ORIGIN ||
+    "http://localhost:5173")
+    .trim()
+    .replace(/\/$/, "");
+
 /**
  * START GOOGLE LOGIN
  * This is where the `scope` MUST be defined
@@ -23,11 +30,11 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "http://localhost:5173/login",
+    failureRedirect: `${getFrontendBaseUrl()}/login`,
   }),
   (req, res) => {
     // Successful login → redirect to frontend
-    res.redirect("http://localhost:5173/");
+    res.redirect(`${getFrontendBaseUrl()}/`);
   }
 );
 
