@@ -7,7 +7,7 @@ const Medicine = require("../models/Medicine.model");
 const Inventory = require("../models/Inventory.model");
 const { createOrder } = require("./order.service");
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "placeholder_key" });
 
 const SYSTEM_PROMPT = `
 You are RxAssist, a professional AI Pharmacist assistant embedded in a licensed pharmacy platform. You assist customers with medication queries, order guidance, and health information.
@@ -377,6 +377,10 @@ async function execute_create_reminder(userId, medicineId, times, days) {
  * Maintains session history.
  */
 async function pharmacistChat({ userId, sessionId, message, userContext = {}, source = "web" }) {
+  if (!process.env.GROQ_API_KEY || process.env.GROQ_API_KEY === "your_groq_api_key") {
+    throw new Error("GROQ_API_KEY is missing or empty. Please configure a valid Groq API key in your backend .env file.");
+  }
+
   if (!sessionStore.has(sessionId)) {
     sessionStore.set(sessionId, []);
   }

@@ -1,7 +1,7 @@
 const Groq = require("groq-sdk");
 const { extractTextFromImage, parseMedicinesFromOCRText } = require("../utils/ocr");
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "placeholder_key" });
 
 /**
  * Parse a raw LLM text response into JSON, stripping markdown fences.
@@ -29,6 +29,10 @@ const parseJsonSafely = (text) => {
  * @returns {Promise<Array>} Array of {name, dosage, frequency, duration}
  */
 const extractMedicinesFromPrescriptionImage = async ({ filePath, mimeType }) => {
+  if (!process.env.GROQ_API_KEY || process.env.GROQ_API_KEY === "your_groq_api_key") {
+    throw new Error("GROQ_API_KEY is missing or empty. Please configure a valid Groq API key in your backend .env file.");
+  }
+
   if (!mimeType || !mimeType.startsWith("image/")) {
     throw new Error("Please upload an image prescription (PNG/JPG). PDF support is disabled in demo mode.");
   }
