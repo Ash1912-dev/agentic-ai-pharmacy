@@ -6,6 +6,8 @@ const User = require("../models/User.model");
 const UserMedicineCourse = require("../models/UserMedicineCourse.model");
 const twilioClient = require("../config/twilio");
 const { formatWhatsAppNumber } = require("../utils/phone.util");
+const DailyIntakeReminder = require("../models/DailyIntakeReminder.model");
+const { getTimeHHMMInTimezone } = require("../utils/time");
 
 /**
  * INTERNAL: Fulfill order (stock + WhatsApp + course)
@@ -32,6 +34,54 @@ const fulfillOrder = async (order) => {
     totalQuantity: order.quantity,
     remainingQuantity: order.quantity,
   });
+
+  // 2.5️⃣ Automatically create or extend daily intake reminder
+  try {
+    const existingReminder = await DailyIntakeReminder.findOne({
+      user: order.user,
+      medicine: order.medicine,
+      enabled: true
+    });
+
+    if (existingReminder) {
+      const additionalDays = Math.max(1, order.quantity);
+      const newEndDate = new Date(existingReminder.endDate);
+      newEndDate.setDate(newEndDate.getDate() + additionalDays);
+      existingReminder.endDate = newEndDate;
+
+      // Add the current time if it's not already in the schedule to trigger immediately
+      const now = new Date();
+      const currentLocalTime = getTimeHHMMInTimezone(now);
+      if (!existingReminder.times.includes(currentLocalTime)) {
+        existingReminder.times.push(currentLocalTime);
+      }
+
+      await existingReminder.save();
+      console.log(`[fulfillOrder] Extended existing DailyIntakeReminder for user ${order.user} and medicine ${order.medicine} to ${newEndDate}`);
+    } else {
+      const days = Math.max(1, order.quantity);
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + days);
+
+      const now = new Date();
+      const currentLocalTime = getTimeHHMMInTimezone(now);
+      const times = [currentLocalTime];
+      if (!times.includes("09:00")) {
+        times.push("09:00");
+      }
+
+      await DailyIntakeReminder.create({
+        user: order.user,
+        medicine: order.medicine,
+        times,
+        endDate,
+        enabled: true
+      });
+      console.log(`[fulfillOrder] Automatically created DailyIntakeReminder for user ${order.user} and medicine ${order.medicine} with times ${times}`);
+    }
+  } catch (reminderErr) {
+    console.error(`[fulfillOrder] Failed to automatically create DailyIntakeReminder:`, reminderErr.message);
+  }
 
   // 3️⃣ Send WhatsApp
   const user = await User.findById(order.user);
