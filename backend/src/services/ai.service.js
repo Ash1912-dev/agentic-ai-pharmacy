@@ -95,12 +95,7 @@ const TOOLS_DEFINITIONS = [
       description: "Retrieve the user's profile, recent orders, active medicine courses, and intake reminders.",
       parameters: {
         type: "object",
-        properties: {
-          userId: {
-            type: "string",
-            description: "The ID of the user."
-          }
-        }
+        properties: {}
       }
     }
   },
@@ -133,10 +128,6 @@ const TOOLS_DEFINITIONS = [
       parameters: {
         type: "object",
         properties: {
-          userId: {
-            type: "string",
-            description: "The ID of the user placing the order."
-          },
           medicineId: {
             type: "string",
             description: "The ID of the medicine to order."
@@ -158,10 +149,6 @@ const TOOLS_DEFINITIONS = [
       parameters: {
         type: "object",
         properties: {
-          userId: {
-            type: "string",
-            description: "The ID of the user."
-          },
           medicineId: {
             type: "string",
             description: "The ID of the medicine to create a reminder for."
@@ -420,8 +407,12 @@ async function pharmacistChat({ userId, sessionId, message, userContext = {}, so
     const assistantMessage = choice.message;
 
     if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-      // Append the assistant's message with tool calls to history
-      history.push(assistantMessage);
+      // Append the assistant's message with tool calls to history as a plain object
+      history.push({
+        role: "assistant",
+        content: assistantMessage.content || null,
+        tool_calls: assistantMessage.tool_calls
+      });
 
       // Execute each tool call
       for (const toolCall of assistantMessage.tool_calls) {
@@ -468,7 +459,10 @@ async function pharmacistChat({ userId, sessionId, message, userContext = {}, so
       }
     } else {
       reply = assistantMessage.content || "";
-      history.push(assistantMessage);
+      history.push({
+        role: "assistant",
+        content: reply
+      });
       done = true;
     }
   }
