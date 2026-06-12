@@ -424,23 +424,24 @@ async function pharmacistChat({ userId, sessionId, message, userContext = {}, so
           console.error("Failed to parse tool args:", toolCall.function.arguments);
         }
 
-        console.log(`🤖 RxAssist executing tool: ${functionName}`, functionArgs);
+        const args = functionArgs || {};
+        console.log(`🤖 RxAssist executing tool: ${functionName}`, args);
 
         let result = "";
         try {
           if (functionName === "get_medicines") {
             result = await execute_get_medicines();
           } else if (functionName === "get_user_history") {
-            const uid = functionArgs.userId || userId;
+            const uid = args.userId || userId;
             result = await execute_get_user_history(uid);
           } else if (functionName === "check_drug_interaction") {
-            result = execute_check_drug_interaction(functionArgs.med1, functionArgs.med2);
+            result = execute_check_drug_interaction(args.med1, args.med2);
           } else if (functionName === "create_order") {
-            const uid = functionArgs.userId || userId;
-            result = await execute_create_order(uid, functionArgs.medicineId, functionArgs.quantity);
+            const uid = args.userId || userId;
+            result = await execute_create_order(uid, args.medicineId, args.quantity);
           } else if (functionName === "create_reminder") {
-            const uid = functionArgs.userId || userId;
-            result = await execute_create_reminder(uid, functionArgs.medicineId, functionArgs.times, functionArgs.days);
+            const uid = args.userId || userId;
+            result = await execute_create_reminder(uid, args.medicineId, args.times, args.days);
           } else {
             result = JSON.stringify({ error: `Tool ${functionName} not found.` });
           }
