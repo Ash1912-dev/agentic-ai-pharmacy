@@ -6,7 +6,7 @@ const Medicine = require("../models/Medicine.model");
 const Inventory = require("../models/Inventory.model");
 const {
   extractMedicinesFromPrescriptionImage,
-} = require("../services/sarvam.service");
+} = require("../services/prescription.service");
 
 const uploadPrescription = async (req, res) => {
   try {
@@ -28,7 +28,7 @@ const uploadPrescription = async (req, res) => {
 
 
 
-    // 2️⃣ Sarvam extraction + inventory matching (no local OCR/Gemini)
+    // 2️⃣ AI extraction + inventory matching
     const extracted = await extractMedicinesFromPrescriptionImage({
       filePath: file.path,
       mimeType: file.mimetype,
@@ -160,22 +160,16 @@ const uploadPrescription = async (req, res) => {
       });
     }
 
-    if (err.message.includes("SARVAM_API_KEY is missing")) {
+    if (err.message.includes("GROQ_API_KEY") || err.message.includes("API key")) {
       return res.status(500).json({
         message:
-          "AI prescription scanning is not configured on the server. Please set SARVAM_API_KEY and SARVAM_CHAT_MODEL.",
+          "AI prescription scanning is not configured on the server. Please set GROQ_API_KEY.",
       });
     }
 
-    if (err.message.startsWith("Sarvam API request failed")) {
+    if (err.message.includes("API request failed") || err.message.includes("Groq")) {
       return res.status(502).json({
         message: "Prescription scanning service failed. Please try again in a few minutes.",
-      });
-    }
-
-    if (err.message.includes("Sarvam returned invalid extraction format")) {
-      return res.status(500).json({
-        message: "Prescription could not be read reliably. Please upload a clearer image.",
       });
     }
 

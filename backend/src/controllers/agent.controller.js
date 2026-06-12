@@ -1,199 +1,139 @@
-const { generateAIResponse } = require("../services/ai.service");
-const { tools } = require("../services/tool.service");
-const { pharmacistSystemPrompt } = require("../agents/pharmacist.agent");
+const { pharmacistChat } = require("../services/ai.service");
 const langfuse = require("../config/langfuse");
+const User = require("../models/User.model");
+const Order = require("../models/Order.model");
+const UserMedicineCourse = require("../models/UserMedicineCourse.model");
+const DailyIntakeReminder = require("../models/DailyIntakeReminder.model");
+
+/**
+ * Build user context object for the AI pharmacist.
+ * Fetches user profile, recent orders, active medicine courses, and reminders.
+ */
+const buildUserContext = async (userId) => {
+  try {
+    const [user, recentOrders, activeCourses, activeReminders] = await Promise.all([
+      User.findById(userId).lean(),
+      Order.find({ user: userId })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .populate("medicine", "name brand price category requiresPrescription")
+        .lean(),
+      UserMedicineCourse.find({ user: userId, remainingQuantity: { $gt: 0 } })
+        .populate("medicine", "name brand")
+        .lean(),
+      DailyIntakeReminder.find({ user: userId, enabled: true })
+        .populate("medicine", "name")
+        .lean(),
+    ]);
+
+    return {
+      name: user?.name,
+      phone: user?.phone,
+      gender: user?.gender,
+      recentOrders: recentOrders.map((o) => ({
+        medicine: o.medicine?.name,
+        quantity: o.quantity,
+        status: o.status,
+        date: o.createdAt,
+      })),
+      activeCourses: activeCourses.map((c) => ({
+        medicine: c.medicine?.name,
+        remaining: c.remainingQuantity,
+        total: c.totalQuantity,
+      })),
+      activeReminders: activeReminders.map((r) => ({
+        medicine: r.medicine?.name,
+        times: r.times,
+      })),
+    };
+  } catch (err) {
+    console.error("⚠️ Failed to build user context:", err.message);
+    return {};
+  }
+};
 
 const agentMessage = async (req, res) => {
   const userId = req.user?._id?.toString();
   const message = typeof req.body?.message === "string" ? req.body.message.trim() : "";
+  const source = req.body?.source || "web";
 
   if (!userId) {
-    return res.status(401).json({
-      message: "Unauthorized",
-    });
+    return res.status(401).json({ message: "Unauthorized" });
   }
 
   if (!message) {
-    return res.status(400).json({
-      message: "message is required",
-    });
+    return res.status(400).json({ message: "Message is required" });
   }
 
-  if (message.length > 500) {
-    return res.status(400).json({
-      message: "Message too long. Maximum 500 characters.",
-    });
+  if (message.length > 1000) {
+    return res.status(400).json({ message: "Message too long. Maximum 1000 characters." });
   }
 
-  // ✅ Create trace
-  const trace = await langfuse.trace({
-    name: "pharmacist-agent",
-    userId,
-    input: message,
-  });
+  // Session ID: userId + today's date → history persists within a day
+  const sessionId = `${userId}-${new Date().toISOString().slice(0, 10)}`;
+
+  // Create Langfuse trace for observability
+  let trace;
+  try {
+    trace = langfuse.trace({
+      name: "pharmacist-chat",
+      userId,
+      input: message,
+      metadata: { sessionId, source },
+    });
+  } catch (err) {
+    console.warn("⚠️ Langfuse trace creation failed:", err.message);
+  }
 
   try {
-    // 1️⃣ Build prompt
-    const prompt = `
-${pharmacistSystemPrompt}
+    // Build user context (fetched once per session via the pharmacistChat seeding)
+    const userContext = await buildUserContext(userId);
 
-User message:
-"${message}"
-
-Respond in JSON only:
-{
-  "medicine": "",
-  "quantity": number | null,
-  "needsClarification": boolean,
-  "clarificationQuestion": ""
-}
-`;
-
-    // 2️⃣ AI intent extraction span
-    const aiSpan = await langfuse.span({
-      traceId: trace.id,
-      name: "ai-intent-extraction",
-      input: prompt,
-    });
-
-    let text = await generateAIResponse(prompt);
-    text = text.replace(/```json|```/g, "").trim();
-
-    await langfuse.span({
-      traceId: trace.id,
-      parentSpanId: aiSpan.id,
-      name: "ai-output",
-      output: text,
-    });
-
-    const intent = JSON.parse(text);
-
-    // 3️⃣ Clarification
-    if (intent.needsClarification) {
-      await langfuse.trace({
-        id: trace.id,
-        output: "Clarification requested",
-      });
-
-      return res.json({
-        reply: intent.clarificationQuestion,
-      });
+    // Langfuse generation span around the Groq call
+    let generation;
+    try {
+      if (trace) {
+        generation = trace.generation({
+          name: "groq-pharmacist-chat",
+          model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+          input: message,
+          metadata: { sessionId, source, contextKeys: Object.keys(userContext) },
+        });
+      }
+    } catch (err) {
+      console.warn("⚠️ Langfuse generation creation failed:", err.message);
     }
 
-    if (!intent.medicine || !intent.quantity) {
-      await langfuse.trace({
-        id: trace.id,
-        output: "Missing medicine or quantity",
-      });
-
-      return res.json({
-        reply: "Please tell me the medicine name and quantity clearly.",
-      });
-    }
-
-    // 4️⃣ Search medicine
-    const searchSpan = await langfuse.span({
-      traceId: trace.id,
-      name: "search-medicine",
-      input: intent.medicine,
-    });
-
-    const medicines = await tools.searchMedicine(intent.medicine);
-
-    await langfuse.span({
-      traceId: trace.id,
-      parentSpanId: searchSpan.id,
-      name: "search-result",
-      output: medicines,
-    });
-
-    if (!medicines.length) {
-      await langfuse.trace({
-        id: trace.id,
-        output: "Medicine not found",
-      });
-
-      return res.json({
-        reply: "I couldn’t find that medicine. Please check the name.",
-      });
-    }
-
-    const medicine = medicines[0];
-
-    // 5️⃣ Inventory check
-    const inventorySpan = await langfuse.span({
-      traceId: trace.id,
-      name: "check-inventory",
-      input: {
-        medicineId: medicine._id,
-        quantity: intent.quantity,
-      },
-    });
-
-    const inventory = await tools.checkInventory(
-      medicine._id,
-      intent.quantity
-    );
-
-    await langfuse.span({
-      traceId: trace.id,
-      parentSpanId: inventorySpan.id,
-      name: "inventory-result",
-      output: inventory,
-    });
-
-    if (!inventory.available) {
-      await langfuse.trace({
-        id: trace.id,
-        output: "Out of stock",
-      });
-
-      return res.json({
-        reply: "Sorry, this medicine is currently out of stock.",
-      });
-    }
-
-    // 6️⃣ Create order
-    const orderSpan = await langfuse.span({
-      traceId: trace.id,
-      name: "create-order",
-      input: {
-        userId,
-        medicineId: medicine._id,
-        quantity: intent.quantity,
-      },
-    });
-
-    const orderResult = await tools.createOrder({
+    const reply = await pharmacistChat({
       userId,
-      medicineId: medicine._id,
-      quantity: intent.quantity,
+      sessionId,
+      message,
+      userContext,
+      source,
     });
 
-    await langfuse.span({
-      traceId: trace.id,
-      parentSpanId: orderSpan.id,
-      name: "order-result",
-      output: orderResult,
-    });
+    // Close Langfuse generation
+    try {
+      if (generation) {
+        generation.end({ output: reply });
+      }
+      if (trace) {
+        trace.update({ output: reply });
+      }
+    } catch (err) {
+      console.warn("⚠️ Langfuse generation end failed:", err.message);
+    }
 
-    // ✅ Final trace update
-    await langfuse.trace({
-      id: trace.id,
-      output: "Order placed successfully",
-    });
-
-    return res.json({
-      reply: orderResult.message,
-    });
+    return res.json({ reply, sessionId });
 
   } catch (error) {
-    console.error("🔥 AGENT ERROR FULL:", error);
+    console.error("🔥 AGENT ERROR:", error.message);
 
-    await langfuse.trace({
-      id: trace.id,
-      error: error.message || error.toString(),
-    });
+    try {
+      if (trace) {
+        trace.update({ output: error.message, level: "ERROR" });
+      }
+    } catch (_) { /* ignore langfuse errors */ }
 
     return res.status(500).json({
       message: "Agent failed",
