@@ -2,12 +2,7 @@ const cron = require("node-cron");
 const RefillReminder = require("../models/RefillReminder.model");
 const DailyIntakeReminder = require("../models/DailyIntakeReminder.model");
 const twilioClient = require("../config/twilio");
-
-// Format phone to +91XXXXXXXXXX or +XXXXXXXXXX format
-const formatPhoneWithCode = (phone) => {
-  const digits = phone.replace(/\D/g, "");
-  return digits.length === 10 ? `+91${digits}` : `+${digits}`;
-};
+const { formatWhatsAppNumber } = require("../utils/phone.util");
 
 // Run every 20 seconds to check for pending refill reminders
 cron.schedule("*/20 * * * * *", async () => {
@@ -45,9 +40,9 @@ cron.schedule("*/20 * * * * *", async () => {
           continue;
         }
 
-        const formattedPhone = formatPhoneWithCode(reminder.user.phone);
+        const formattedTo = formatWhatsAppNumber(reminder.user.phone);
 
-        console.log(`📤 Sending refill reminder to: ${formattedPhone}`);
+        console.log(`📤 Sending refill reminder to: ${formattedTo}`);
 
         const msg = `🟡 Refill Reminder
 
@@ -59,7 +54,7 @@ Reply:
 
         await twilioClient.messages.create({
           from: process.env.TWILIO_WHATSAPP_FROM,
-          to: `whatsapp:${formattedPhone}`,
+          to: formattedTo,
           body: msg,
         });
 

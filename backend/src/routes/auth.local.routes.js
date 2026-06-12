@@ -2,6 +2,7 @@ const express = require("express");
 const User = require("../models/User.model");
 const bcrypt = require("bcryptjs");
 const { signToken } = require("../utils/token");
+const { cleanPhone } = require("../utils/phone.util");
 
 const router = express.Router();
 
@@ -12,14 +13,15 @@ const router = express.Router();
  * SIGNUP (Email/Phone + Password)
  */
 router.post("/signup", async (req, res) => {
-  const { name, phone, email, password, address, gender, dob } = req.body;
+  const { name, email, password, address, gender, dob } = req.body;
+  const phone = cleanPhone(req.body.phone);
 
   if (!name || !phone || !password) {
     return res.status(400).json({ message: "Name, phone, and password are required" });
   }
 
   try {
-    // Check if user exists
+    // Check if user exists (phone is already sanitized to 10 digits)
     let user = await User.findOne({ $or: [{ phone }, { email }] }).select("+password");
 
     if (user) {
@@ -80,9 +82,15 @@ router.post("/login", async (req, res) => {
   }
 
   try {
+    // Sanitize identifier if it looks like a phone number (all digits after stripping)
+    const strippedIdentifier = String(identifier).replace(/\D/g, "");
+    const cleanedIdentifier = strippedIdentifier.length >= 10
+      ? cleanPhone(identifier)
+      : identifier;
+
     // Find user by phone OR email
     const user = await User.findOne({
-      $or: [{ phone: identifier }, { email: identifier }],
+      $or: [{ phone: cleanedIdentifier }, { email: identifier }],
     }).select("+password"); // Explicitly select password
 
     if (!user) {

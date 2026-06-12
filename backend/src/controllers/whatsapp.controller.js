@@ -3,21 +3,13 @@ const DailyIntakeReminder = require("../models/DailyIntakeReminder.model");
 const UserMedicineCourse = require("../models/UserMedicineCourse.model");
 const { createOrder } = require("../services/order.service");
 const twilioClient = require("../config/twilio");
-
-// normalize phone to last 10 digits
-const normalizePhone = (p) => p.replace(/\D/g, "").slice(-10);
-
-// Format phone to +91XXXXXXXXXX or +XXXXXXXXXX format
-const formatPhoneWithCode = (phone) => {
-  const digits = phone.replace(/\D/g, "");
-  return digits.length === 10 ? `+91${digits}` : `+${digits}`;
-};
+const { cleanPhone, formatWhatsAppNumber } = require("../utils/phone.util");
 
 exports.incomingWhatsApp = async (req, res) => {
   try {
     const message = (req.body.Body || "").trim();
     const from = req.body.From; // whatsapp:+91XXXXXXXXXX
-    const phone = normalizePhone(from);
+    const phone = cleanPhone(from);
 
     console.log("📩 Incoming WhatsApp:", message, phone);
 
@@ -31,7 +23,7 @@ exports.incomingWhatsApp = async (req, res) => {
 
     if (
       refillReminder &&
-      normalizePhone(refillReminder.user.phone) === phone
+      cleanPhone(refillReminder.user.phone) === phone
     ) {
       // 1️⃣ Reorder
       if (message === "1" && !refillReminder.awaitingQuantity) {
@@ -101,7 +93,7 @@ exports.incomingWhatsApp = async (req, res) => {
 
     if (
       intakeReminder &&
-      normalizePhone(intakeReminder.user.phone) === phone &&
+      cleanPhone(intakeReminder.user.phone) === phone &&
       ["1", "2"].includes(message)
     ) {
       const status = message === "1" ? "TAKEN" : "SKIPPED";
@@ -155,7 +147,7 @@ exports.incomingWhatsApp = async (req, res) => {
 
               await twilioClient.messages.create({
                 from: process.env.TWILIO_WHATSAPP_FROM,
-                to: `whatsapp:${formatPhoneWithCode(phone)}`,
+                to: formatWhatsAppNumber(phone),
                 body: `🟡 Refill Reminder
 
 You will run out of *${intakeReminder.medicine.name}* tomorrow.
@@ -174,7 +166,7 @@ Reply:
       // Acknowledge intake
       await twilioClient.messages.create({
         from: process.env.TWILIO_WHATSAPP_FROM,
-        to: `whatsapp:${formatPhoneWithCode(phone)}`,
+        to: formatWhatsAppNumber(phone),
         body:
           status === "TAKEN"
             ? "✅ Logged. Great job taking your medicine!"

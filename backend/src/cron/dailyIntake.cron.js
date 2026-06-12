@@ -1,17 +1,14 @@
 const cron = require("node-cron");
 const DailyIntakeReminder = require("../models/DailyIntakeReminder.model");
 const twilioClient = require("../config/twilio");
+const { formatWhatsAppNumber } = require("../utils/phone.util");
 const {
   APP_TIMEZONE,
+  APP_TIMEZONE_OFFSET_MINUTES,
   getTimeHHMMInTimezone,
   getDateKeyInTimezone,
+  getUtcOffsetLabel,
 } = require("../utils/time");
-
-// Format phone to +91XXXXXXXXXX or +XXXXXXXXXX format
-const formatPhoneWithCode = (phone) => {
-  const digits = phone.replace(/\D/g, "");
-  return digits.length === 10 ? `+91${digits}` : `+${digits}`;
-};
 
 // Run every minute to check if any reminders need to be sent
 cron.schedule("* * * * *", async () => {
@@ -19,9 +16,12 @@ cron.schedule("* * * * *", async () => {
     const now = new Date();
     const timeNow = getTimeHHMMInTimezone(now);
     const todayKey = getDateKeyInTimezone(now);
+    const serverUtcTime = now.toISOString().slice(11, 16);
 
     console.log(
-      `📅 Daily intake reminder cron running at ${timeNow} (${APP_TIMEZONE})`
+      `📅 Daily intake reminder cron running at ${timeNow} (${APP_TIMEZONE}, ${getUtcOffsetLabel(
+        APP_TIMEZONE_OFFSET_MINUTES
+      )}) | server UTC ${serverUtcTime}`
     );
 
     // Find all ACTIVE daily intake reminders within date range and matching time
@@ -47,10 +47,9 @@ cron.schedule("* * * * *", async () => {
         continue;
       }
 
-      const rawPhone = reminder.user.phone;
-      const formattedPhone = formatPhoneWithCode(rawPhone);
+      const formattedTo = formatWhatsAppNumber(reminder.user.phone);
 
-      console.log(`📤 Sending reminder to: ${formattedPhone}`);
+      console.log(`📤 Sending reminder to: ${formattedTo}`);
 
       try {
         const msg = `💊 Medicine Reminder
@@ -63,7 +62,7 @@ Reply:
 
         await twilioClient.messages.create({
           from: process.env.TWILIO_WHATSAPP_FROM,
-          to: `whatsapp:${formattedPhone}`,
+          to: formattedTo,
           body: msg,
         });
 
@@ -75,7 +74,7 @@ Reply:
         console.log(`✅ Reminder sent for ${reminder.medicine.name}`);
       } catch (sendError) {
         console.error(
-          `❌ Failed to send reminder to ${formattedPhone}:`,
+          `❌ Failed to send reminder to ${formattedTo}:`,
           sendError.message
         );
       }

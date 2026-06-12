@@ -5,6 +5,7 @@ const Prescription = require("../models/Prescription.model");
 const User = require("../models/User.model");
 const UserMedicineCourse = require("../models/UserMedicineCourse.model");
 const twilioClient = require("../config/twilio");
+const { formatWhatsAppNumber } = require("../utils/phone.util");
 
 /**
  * INTERNAL: Fulfill order (stock + WhatsApp + course)
@@ -37,7 +38,7 @@ const fulfillOrder = async (order) => {
   const medicine = await Medicine.findById(order.medicine);
 
   if (user?.phone) {
-    const to = `whatsapp:+91${user.phone.replace(/\D/g, "")}`;
+    const to = formatWhatsAppNumber(user.phone);
    try {
       await twilioClient.messages.create({
         from: process.env.TWILIO_WHATSAPP_FROM,

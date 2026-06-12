@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { cleanPhone } = require("../utils/phone.util");
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -48,5 +49,13 @@ const userSchema = new mongoose.Schema({
 },
   { timestamps: true }
 );
+
+// Strip phone to bare 10 digits before every save
+userSchema.pre("save", function (next) {
+  if (this.isModified("phone") && this.phone) {
+    this.phone = cleanPhone(this.phone);
+  }
+  next();
+});
 
 module.exports = mongoose.model("User", userSchema);
