@@ -197,11 +197,12 @@ const ChatWindow = () => {
       setMessages((prev) => [...prev, agentMessage]);
     } catch (err) {
       console.error("Chat error:", err);
+      const errorMsg = err?.response?.data?.error || err?.response?.data?.message || err.message || "Something went wrong.";
       setMessages((prev) => [
         ...prev,
         {
           sender: "agent",
-          text: "⚠️ Something went wrong. Please try again.",
+          text: `⚠️ Chat Error: ${errorMsg}`,
           timestamp: new Date(),
           type: "error",
         },
